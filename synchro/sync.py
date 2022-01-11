@@ -271,9 +271,7 @@ class Synchronise:
         """
         if self.log_file is None:
             self.log_file = self.source_directory / (
-                datetime.now().strftime(
-                    "file_transfers" + "_%Y-%m-%d_%H-%M-%S"
-                )
+                datetime.now().strftime("synchro" + "_%Y-%m-%d_%H-%M-%S")
                 + ".log"
             )
 
