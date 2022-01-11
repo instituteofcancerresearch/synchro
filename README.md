@@ -2,6 +2,14 @@
 Customisable file transfers using rsync
 
 ---
+## About
+Synchro is a simple python-based tool for customisable file movements, e.g. copying data to a backup server.
+
+Synchro currently supports/includes:
+* Transfer via ssh
+* Archiving using tar (and option extraction)
+* Option to only transfer data when a specific file is present
+* Logging to file
 
 ## To install
 To install, you need a Unix-based system with conda (miniconda or anaconda) installed.
