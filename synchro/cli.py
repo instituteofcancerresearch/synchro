@@ -21,8 +21,8 @@ def cli_parser():
         "--config-file",
         dest="config_file",
         type=str,
-        default="file_transfers.conf",
-        help="Name of the file transfer config file",
+        default="synchro.conf",
+        help="Name of the config file",
     )
     parser.add_argument(
         "-l",
@@ -30,7 +30,7 @@ def cli_parser():
         dest="log_file",
         default=None,
         help="File to log to. Otherwise defaults to "
-        "'destination_directory/file_transfers.log",
+        "'destination_directory/synchro.log",
     )
 
     return parser
