@@ -37,7 +37,8 @@ class Synchronise:
         untar_options=["-xvf"],
         rsync_options=["-aP"],
         untar=False,
-        delete_tarball=True,
+        delete_source_tar=True,
+        delete_destination_tar=True,
         create_dest=False,
         create_dest_parents=True,
         exclude_log_file=True,
@@ -58,7 +59,8 @@ class Synchronise:
         self.rsync_destination_directory = []
         self.transfer_ready_file = []
         self.untar = untar
-        self.delete_tarball = delete_tarball
+        self.delete_source_tar = delete_source_tar
+        self.delete_destination_tar = delete_destination_tar
         self.create_dest = create_dest
         self.create_dest_parents = create_dest_parents
         self.exclude_log_file = exclude_log_file
@@ -73,7 +75,7 @@ class Synchronise:
         self.mkdir_string = []
         self.tar_string = []
         self.untar_string = []
-        self.delete_tarball_string = []
+        self.delete_destination_tarball_string = []
         self.rsync_string = []
 
         self.read_config()
@@ -128,8 +130,8 @@ class Synchronise:
         self.prep_tar_string()
         if self.untar:
             self.prep_untar_string()
-            if self.delete_tarball:
-                self.prep_delete_tarball_string()
+            if self.delete_destination_tar:
+                self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
 
     def check_source_directory(self):
@@ -318,8 +320,10 @@ class Synchronise:
         logging.debug(f"rsync command: {self.rsync_string}")
         if self.untar_string:
             logging.debug(f"untar command: {self.untar_string}")
-        if self.delete_tarball:
-            logging.debug(f"deletion command: {self.delete_tarball_string}")
+        if self.delete_destination_tar:
+            logging.debug(
+                f"deletion command: {self.delete_destination_tarball_string}"
+            )
 
         logging.debug("**************************************\n")
         logging.debug("Starting log")
@@ -400,18 +404,18 @@ class Synchronise:
         if self.remote_dest:
             self.untar_string = self.add_ssh_prefix(self.untar_string)
 
-    def prep_delete_tarball_string(self):
+    def prep_delete_destination_tarball_string(self):
         """
         Create command to delete tar archive after untar
         """
-        self.delete_tarball_string = [
+        self.delete_destination_tarball_string = [
             "rm",
             "-v",
             str(self.dest_tar_archive),
         ]
         if self.remote_dest:
-            self.delete_tarball_string = self.add_ssh_prefix(
-                self.delete_tarball_string
+            self.delete_destination_tarball_string = self.add_ssh_prefix(
+                self.delete_destination_tarball_string
             )
 
     def add_ssh_prefix(self, cmd):
@@ -439,26 +443,32 @@ class Synchronise:
         if self.untar:
             logging.debug("Untaring files")
             self.run_untar()
-            if self.delete_tarball:
-                logging.debug("Deleting tar archive")
-                self.run_tar_deletion()
+            if self.delete_destination_tar:
+                logging.debug("Removing destination tar archive")
+                self.run_destination_tar_deletion()
         else:
             logging.debug("Not untaring files")
         logging.debug("Writing 'transfer.done' file")
+        if self.delete_source_tar:
+            logging.debug("Removing source tar archive ")
+            self.run_delete_source_tar()
         self.write_transfer_done_file()
         self.write_log_footer()
 
     def run_tar(self):
         execute_and_log(self.tar_string)
 
-    def run_tar_deletion(self):
-        execute_and_log(self.delete_tarball_string)
+    def run_destination_tar_deletion(self):
+        execute_and_log(self.delete_destination_tarball_string)
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
 
     def run_untar(self):
         execute_and_log(self.untar_string)
+
+    def run_delete_source_tar(self):
+        self.tar_archive.unlink()
 
     def write_transfer_done_file(self):
         self.transfer_done_file().touch()
