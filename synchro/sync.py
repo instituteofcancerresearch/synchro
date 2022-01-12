@@ -86,12 +86,26 @@ class Synchronise:
         """
         Ensure the files are in place before starting sync
         """
-        self.transfer_check_ready_file()
+        if not self.check_transfer_done_file():
+            self.transfer_check_ready_file()
+        else:
+            self.sync_ready = False
 
         if not self.sync_ready:
-            print("Not running sychronisation")
+            print("Not running synchronisation")
+
+    def check_transfer_done_file(self):
+        """
+        Check whether the transfer done file (transfer.done) exists,
+        signifying transfer has already taken place.
+        """
+        return self.transfer_done_file().exists()
 
     def transfer_check_ready_file(self):
+        """
+        Check whether the transfer ready file (e.g. ready.txt) exists,
+        signifying transfer should begin.
+        """
         if self.transfer_ready_file is not None:
             if self.transfer_ready_file.exists():
                 self.sync_ready = True
@@ -422,6 +436,8 @@ class Synchronise:
                 self.run_tar_deletion()
         else:
             logging.debug("Not untaring files")
+        logging.debug("Writing 'transfer.done' file")
+        self.write_transfer_done_file()
         self.write_log_footer()
 
     def run_tar(self):
@@ -435,6 +451,12 @@ class Synchronise:
 
     def run_untar(self):
         execute_and_log(self.untar_string)
+
+    def write_transfer_done_file(self):
+        self.transfer_done_file().touch()
+
+    def transfer_done_file(self):
+        return self.source_directory / "transfer.done"
 
     def abort(self):
         """
