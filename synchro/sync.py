@@ -40,11 +40,12 @@ class Synchronise:
         delete_tarball=True,
         create_dest=False,
         create_dest_parents=True,
+        exclude_log_file=True,
     ):
         self.sync_ready = False
         self.source_directory = source_directory
         self.config_file = config_file
-        self.log_file = log_file
+        self.log_filename = log_file
         self.log_level = log_level
         self.rsync_options = rsync_options
         self.tar_options = tar_options
@@ -60,6 +61,7 @@ class Synchronise:
         self.delete_tarball = delete_tarball
         self.create_dest = create_dest
         self.create_dest_parents = create_dest_parents
+        self.exclude_log_file = exclude_log_file
         self.dest_exists = []
         self.tar_archive = []
         self.dest_tar_archive = []
@@ -118,6 +120,7 @@ class Synchronise:
             self.sync_ready = True
 
     def prep_sync(self):
+        self.get_log_filename()
         self.check_source_directory()
         self.check_remote_dest()
         self.check_inputs()
@@ -279,12 +282,12 @@ class Synchronise:
         else:
             self.local_destination = self.destination_directory
 
-    def get_log_file(self):
+    def get_log_filename(self):
         """
         If no log filename is provided, create one based on the date/time
         """
-        if self.log_file is None:
-            self.log_file = self.source_directory / (
+        if self.log_filename is None:
+            self.log_filename = self.source_directory / (
                 datetime.now().strftime("synchro" + "_%Y-%m-%d_%H-%M-%S")
                 + ".log"
             )
@@ -293,8 +296,7 @@ class Synchronise:
         """
         Begin logging (to stdout and to file)
         """
-        self.get_log_file()
-        initalise_logger(self.log_file, file_level=self.log_level)
+        initalise_logger(self.log_filename, file_level=self.log_level)
 
     def write_log_header(self):
         """
@@ -357,14 +359,20 @@ class Synchronise:
         archiving.
         """
         self.prep_dest_tar_archive_path()
-        self.tar_string = [
-            "tar",
+
+        if self.exclude_log_file:
+            self.tar_string = ["tar", f"--exclude={self.log_filename.name}"]
+        else:
+            self.tar_string = ["tar"]
+
+        cmd = [
             *self.tar_options,
             str(self.tar_archive),
             "-C",
             str(self.source_directory),
             ".",
         ]
+        self.tar_string = self.tar_string + cmd
 
     def prep_rsync_string(self):
         """
