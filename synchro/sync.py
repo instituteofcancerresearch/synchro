@@ -37,14 +37,16 @@ class Synchronise:
         untar_options=["-xvf"],
         rsync_options=["-aP"],
         untar=False,
-        delete_tarball=True,
+        delete_source_tar=True,
+        delete_destination_tar=True,
         create_dest=False,
         create_dest_parents=True,
+        exclude_log_file=True,
     ):
         self.sync_ready = False
         self.source_directory = source_directory
         self.config_file = config_file
-        self.log_file = log_file
+        self.log_filename = log_file
         self.log_level = log_level
         self.rsync_options = rsync_options
         self.tar_options = tar_options
@@ -57,9 +59,11 @@ class Synchronise:
         self.rsync_destination_directory = []
         self.transfer_ready_file = []
         self.untar = untar
-        self.delete_tarball = delete_tarball
+        self.delete_source_tar = delete_source_tar
+        self.delete_destination_tar = delete_destination_tar
         self.create_dest = create_dest
         self.create_dest_parents = create_dest_parents
+        self.exclude_log_file = exclude_log_file
         self.dest_exists = []
         self.tar_archive = []
         self.dest_tar_archive = []
@@ -71,7 +75,7 @@ class Synchronise:
         self.mkdir_string = []
         self.tar_string = []
         self.untar_string = []
-        self.delete_tarball_string = []
+        self.delete_destination_tarball_string = []
         self.rsync_string = []
 
         self.read_config()
@@ -86,12 +90,26 @@ class Synchronise:
         """
         Ensure the files are in place before starting sync
         """
-        self.transfer_check_ready_file()
+        if not self.check_transfer_done_file():
+            self.transfer_check_ready_file()
+        else:
+            self.sync_ready = False
 
         if not self.sync_ready:
-            print("Not running sychronisation")
+            print("Not running synchronisation")
+
+    def check_transfer_done_file(self):
+        """
+        Check whether the transfer done file (transfer.done) exists,
+        signifying transfer has already taken place.
+        """
+        return self.transfer_done_file().exists()
 
     def transfer_check_ready_file(self):
+        """
+        Check whether the transfer ready file (e.g. ready.txt) exists,
+        signifying transfer should begin.
+        """
         if self.transfer_ready_file is not None:
             if self.transfer_ready_file.exists():
                 self.sync_ready = True
@@ -104,6 +122,7 @@ class Synchronise:
             self.sync_ready = True
 
     def prep_sync(self):
+        self.get_log_filename()
         self.check_source_directory()
         self.check_remote_dest()
         self.check_inputs()
@@ -111,8 +130,8 @@ class Synchronise:
         self.prep_tar_string()
         if self.untar:
             self.prep_untar_string()
-            if self.delete_tarball:
-                self.prep_delete_tarball_string()
+            if self.delete_destination_tar:
+                self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
 
     def check_source_directory(self):
@@ -265,12 +284,12 @@ class Synchronise:
         else:
             self.local_destination = self.destination_directory
 
-    def get_log_file(self):
+    def get_log_filename(self):
         """
         If no log filename is provided, create one based on the date/time
         """
-        if self.log_file is None:
-            self.log_file = self.source_directory / (
+        if self.log_filename is None:
+            self.log_filename = self.source_directory / (
                 datetime.now().strftime("synchro" + "_%Y-%m-%d_%H-%M-%S")
                 + ".log"
             )
@@ -279,8 +298,7 @@ class Synchronise:
         """
         Begin logging (to stdout and to file)
         """
-        self.get_log_file()
-        initalise_logger(self.log_file, file_level=self.log_level)
+        initalise_logger(self.log_filename, file_level=self.log_level)
 
     def write_log_header(self):
         """
@@ -302,8 +320,10 @@ class Synchronise:
         logging.debug(f"rsync command: {self.rsync_string}")
         if self.untar_string:
             logging.debug(f"untar command: {self.untar_string}")
-        if self.delete_tarball:
-            logging.debug(f"deletion command: {self.delete_tarball_string}")
+        if self.delete_destination_tar:
+            logging.debug(
+                f"deletion command: {self.delete_destination_tarball_string}"
+            )
 
         logging.debug("**************************************\n")
         logging.debug("Starting log")
@@ -343,14 +363,20 @@ class Synchronise:
         archiving.
         """
         self.prep_dest_tar_archive_path()
-        self.tar_string = [
-            "tar",
+
+        if self.exclude_log_file:
+            self.tar_string = ["tar", f"--exclude={self.log_filename.name}"]
+        else:
+            self.tar_string = ["tar"]
+
+        cmd = [
             *self.tar_options,
             str(self.tar_archive),
             "-C",
             str(self.source_directory),
             ".",
         ]
+        self.tar_string = self.tar_string + cmd
 
     def prep_rsync_string(self):
         """
@@ -378,18 +404,18 @@ class Synchronise:
         if self.remote_dest:
             self.untar_string = self.add_ssh_prefix(self.untar_string)
 
-    def prep_delete_tarball_string(self):
+    def prep_delete_destination_tarball_string(self):
         """
         Create command to delete tar archive after untar
         """
-        self.delete_tarball_string = [
+        self.delete_destination_tarball_string = [
             "rm",
             "-v",
             str(self.dest_tar_archive),
         ]
         if self.remote_dest:
-            self.delete_tarball_string = self.add_ssh_prefix(
-                self.delete_tarball_string
+            self.delete_destination_tarball_string = self.add_ssh_prefix(
+                self.delete_destination_tarball_string
             )
 
     def add_ssh_prefix(self, cmd):
@@ -417,24 +443,38 @@ class Synchronise:
         if self.untar:
             logging.debug("Untaring files")
             self.run_untar()
-            if self.delete_tarball:
-                logging.debug("Deleting tar archive")
-                self.run_tar_deletion()
+            if self.delete_destination_tar:
+                logging.debug("Removing destination tar archive")
+                self.run_destination_tar_deletion()
         else:
             logging.debug("Not untaring files")
+        logging.debug("Writing 'transfer.done' file")
+        if self.delete_source_tar:
+            logging.debug("Removing source tar archive ")
+            self.run_delete_source_tar()
+        self.write_transfer_done_file()
         self.write_log_footer()
 
     def run_tar(self):
         execute_and_log(self.tar_string)
 
-    def run_tar_deletion(self):
-        execute_and_log(self.delete_tarball_string)
+    def run_destination_tar_deletion(self):
+        execute_and_log(self.delete_destination_tarball_string)
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
 
     def run_untar(self):
         execute_and_log(self.untar_string)
+
+    def run_delete_source_tar(self):
+        self.tar_archive.unlink()
+
+    def write_transfer_done_file(self):
+        self.transfer_done_file().touch()
+
+    def transfer_done_file(self):
+        return self.source_directory / "transfer.done"
 
     def abort(self):
         """

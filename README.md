@@ -68,3 +68,20 @@ e.g.:
 ```text
 destination = user@IP:/path/to/destination_directory
 ```
+
+## To use with cron
+*N.B. This assumes you've installed in a conda environment*
+
+**Example - running file transfers hourly (tested on CentOS)**
+* Create a text file in `/etc/cron.hourly` called `synchro`
+```bash
+cd /etc/cron.hourly
+touch synchro
+```
+* Add `synchro` commands to the text file using the full path to the synchro executable
+```text
+/home/user/miniconda3/envs/synchro/bin/synchro /path/to/directory1
+/home/user/miniconda3/envs/synchro/bin/synchro /path/to/directory2
+```
+
+This will then try to backup `directory1` & `directory2` every hour.
