@@ -1,3 +1,12 @@
+[![Python Version](https://img.shields.io/pypi/pyversions/synchro.svg)](https://pypi.org/project/synchro)
+[![PyPI](https://img.shields.io/pypi/v/synchro.svg)](https://pypi.org/project/synchro)
+[![Downloads](https://pepy.tech/badge/synchro)](https://pepy.tech/project/synchro)
+[![Wheel](https://img.shields.io/pypi/wheel/synchro.svg)](https://pypi.org/project/synchro)
+[![Development Status](https://img.shields.io/pypi/status/synchro.svg)](https://github.com/instituteofcancerresearch/synchro)
+[![Tests](https://img.shields.io/github/workflow/status/instituteofcancerresearch/synchro/tests)](
+    https://github.com/instituteofcancerresearch/synchro/actions)
+[![Coverage Status](https://coveralls.io/repos/github/instituteofcancerresearch/synchro/badge.svg?branch=main)](https://coveralls.io/github/instituteofcancerresearch/synchro?branch=main)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 # synchro
 Customisable file transfers using rsync
 
