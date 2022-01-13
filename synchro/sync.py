@@ -144,7 +144,7 @@ class Synchronise:
             if self.delete_destination_tar:
                 self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
-        self.get_permissions()
+        self.get_ownership()
         self.prep_change_ownership_string()
 
     def check_source_directory(self):
@@ -500,13 +500,13 @@ class Synchronise:
             logging.debug("Removing source tar archive ")
             self.run_delete_source_tar()
         logging.debug("Setting destination permissions")
-        self.set_permissions()
+        self.set_ownership()
         self.write_transfer_done_file()
         self.write_log_footer()
 
-    def get_permissions(self):
+    def get_ownership(self):
         """
-        Get permissions of source directory so they can be set the same at
+        Get ownership of source directory so they can be set the same at
         destination
         """
         self.owner = self.source_directory.owner()
@@ -527,9 +527,9 @@ class Synchronise:
     def run_delete_source_tar(self):
         self.tar_archive.unlink()
 
-    def set_permissions(self):
+    def set_ownership(self):
         """
-        Set permissions at destination
+        Set ownership at destination
         """
         execute_and_log(self.change_ownership_string)
 
