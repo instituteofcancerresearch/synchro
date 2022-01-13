@@ -62,9 +62,15 @@ information needed for the transfer. Including:
 * `transfer_ready_file` - A file that must exist in the source directory
 (or relative path) for the transfer to initative. This option is ignored if the line is
 missing from `synchro.conf`.
-* `permissions`  - Persmissions for the destination file, in the 
-* [chmod numerical format](Ohttps://chmodcommand.com/chmod-777/). e.g. `777`. 
-* This option is ignored and defaults to `770` if the line is missing from `synchro.conf`.
+* `permissions`  - Permissions for the destination file, in the
+[chmod numerical format](Ohttps://chmodcommand.com/chmod-777/). e.g. `777`.
+This option is ignored and defaults to `770` if the line is missing from `synchro.conf`.
+* `owner`  - Username for ownership of the transferred files. 
+This option is ignored and defaults to that of the source directory 
+if the line is missing from `synchro.conf`.
+* `group`  - Group for ownership of the transferred files. 
+This option is ignored and defaults to that of the source directory 
+if the line is missing from `synchro.conf`.
 
 **Example:**
 ```text
@@ -73,6 +79,8 @@ untar = y
 create_dest = y 
 transfer_ready_file = ready.txt
 permissions = 777
+owner = user1
+group = staff
 ```
 
 N.B. the destination can also be on a remote host 

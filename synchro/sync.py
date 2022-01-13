@@ -288,7 +288,16 @@ class Synchronise:
 
         try:
             self.permissions = self.config.get("config", "permissions")
+        except configparser.NoOptionError:
+            pass
 
+        try:
+            self.owner = self.config.get("config", "owner")
+        except configparser.NoOptionError:
+            pass
+
+        try:
+            self.group = self.config.get("config", "group")
         except configparser.NoOptionError:
             pass
 
@@ -538,8 +547,10 @@ class Synchronise:
         Get ownership of source directory so they can be set the same at
         destination
         """
-        self.owner = self.source_directory.owner()
-        self.group = self.source_directory.group()
+        if self.owner is None:
+            self.owner = self.source_directory.owner()
+        if self.group is None:
+            self.group = self.source_directory.group()
 
     def run_tar(self):
         execute_and_log(self.tar_string)
