@@ -32,6 +32,13 @@ def cli_parser():
         help="File to log to. Otherwise defaults to "
         "'destination_directory/synchro.log",
     )
+    parser.add_argument(
+        "--no-permission-change",
+        dest="change_permissions",
+        action="store_false",
+        help="Don't change permissions of destination files. "
+        "Useful for debugging",
+    )
 
     return parser
 
@@ -40,7 +47,9 @@ def main():
     args = cli_parser().parse_args()
     source_directory = args.source_directory
     config_file = source_directory / args.config_file
-    run_sychronisation(source_directory, config_file, args.log_file)
+    run_sychronisation(
+        source_directory, config_file, args.log_file, args.change_permissions
+    )
 
 
 if __name__ == "__main__":

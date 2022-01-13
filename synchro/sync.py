@@ -42,6 +42,8 @@ class Synchronise:
         create_dest=False,
         create_dest_parents=True,
         exclude_log_file=True,
+        change_permissions=True,
+        permissions="0660",
     ):
         self.sync_ready = False
         self.source_directory = source_directory
@@ -74,6 +76,8 @@ class Synchronise:
 
         self.owner = None
         self.group = None
+        self.change_permissions = change_permissions
+        self.permissions = permissions
 
         self.mkdir_string = []
         self.tar_string = []
@@ -81,6 +85,7 @@ class Synchronise:
         self.delete_destination_tarball_string = []
         self.rsync_string = []
         self.change_ownership_string = []
+        self.change_permission_string = []
 
         self.read_config()
         self.check_sync_ready()
@@ -145,7 +150,7 @@ class Synchronise:
                 self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
         self.get_ownership()
-        self.prep_change_ownership_string()
+        self.prep_change_ownership_permission_strings()
 
     def check_source_directory(self):
         """
@@ -417,7 +422,7 @@ class Synchronise:
         if self.remote_dest:
             self.untar_string = self.add_ssh_prefix(self.untar_string)
 
-    def prep_change_ownership_string(self):
+    def prep_change_ownership_permission_strings(self):
         """
         Create command change permissions at destination
         """
@@ -431,24 +436,42 @@ class Synchronise:
         new_ownership = self.owner + ":" + self.group
         chown_string = ["chown", "-R", new_ownership]
 
+        chmod_string = ["chmod", self.permissions]
+
         if not self.delete_destination_tar and self.untar:
             self.change_ownership_string = (
                 chown_string
                 + [str(self.dest_tar_archive)]
                 + [str(self.local_destination)]
             )
+
+            self.change_permission_string = (
+                chmod_string
+                + [str(self.dest_tar_archive)]
+                + [str(self.local_destination)]
+            )
+
         elif self.delete_destination_tar and self.untar:
             self.change_ownership_string = chown_string + [
+                str(self.local_destination)
+            ]
+            self.change_permission_string = chmod_string + [
                 str(self.local_destination)
             ]
         elif not self.delete_destination_tar and not self.untar:
             self.change_ownership_string = chown_string + [
                 str(self.dest_tar_archive)
             ]
+            self.change_permission_string = chmod_string + [
+                str(self.dest_tar_archive)
+            ]
 
         if self.remote_dest:
             self.change_ownership_string = self.add_ssh_prefix(
                 self.change_ownership_string
+            )
+            self.change_permission_string = self.add_ssh_prefix(
+                self.change_permission_string
             )
 
     def prep_delete_destination_tarball_string(self):
@@ -499,8 +522,8 @@ class Synchronise:
         if self.delete_source_tar:
             logging.debug("Removing source tar archive ")
             self.run_delete_source_tar()
-        logging.debug("Setting destination permissions")
-        self.set_ownership()
+        logging.debug("Setting destination ownership and permissions")
+        self.set_ownership_permissions()
         self.write_transfer_done_file()
         self.write_log_footer()
 
@@ -527,11 +550,13 @@ class Synchronise:
     def run_delete_source_tar(self):
         self.tar_archive.unlink()
 
-    def set_ownership(self):
+    def set_ownership_permissions(self):
         """
         Set ownership at destination
         """
         execute_and_log(self.change_ownership_string)
+        if self.change_permissions:
+            execute_and_log(self.change_permission_string)
 
     def write_transfer_done_file(self):
         self.transfer_done_file().touch()
@@ -561,6 +586,13 @@ class Synchronise:
         logging.debug(f"Time taken: {transfer_duration}")
 
 
-def run_sychronisation(source_directory, config_file, log_file):
-    synchro = Synchronise(source_directory, config_file, log_file)
+def run_sychronisation(
+    source_directory, config_file, log_file, change_permissions=True
+):
+    synchro = Synchronise(
+        source_directory,
+        config_file,
+        log_file,
+        change_permissions=change_permissions,
+    )
     synchro.start_sync()

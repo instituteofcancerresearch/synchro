@@ -48,7 +48,7 @@ def run_sync(directory, create_ready_file=None, check_ready_file=None):
     create_test_files(source_dir, ready_file=create_ready_file)
     create_conf_file(source_dir, dest_dir, ready_file=check_ready_file)
 
-    sys.argv = ["synchro", str(source_dir)]
+    sys.argv = ["synchro", str(source_dir), "--no-permission-change"]
     synchro_run()
     return source_dir, dest_dir
 
