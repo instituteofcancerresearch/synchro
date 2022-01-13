@@ -61,7 +61,10 @@ information needed for the transfer. Including:
 * `create_dest` - Create the destination directory if it doesn't exist? e.g. `y`
 * `transfer_ready_file` - A file that must exist in the source directory
 (or relative path) for the transfer to initative. This option is ignored if the line is
-missing from `synchro.conf`
+missing from `synchro.conf`.
+* `permissions`  - Persmissions for the destination file, in the 
+* [chmod numerical format](Ohttps://chmodcommand.com/chmod-777/). e.g. `777`. 
+* This option is ignored and defaults to `770` if the line is missing from `synchro.conf`.
 
 **Example:**
 ```text
@@ -69,6 +72,7 @@ destination = /path/to/destination_directory
 untar = y 
 create_dest = y 
 transfer_ready_file = ready.txt
+permissions = 777
 ```
 
 N.B. the destination can also be on a remote host 

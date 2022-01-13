@@ -43,7 +43,7 @@ class Synchronise:
         create_dest_parents=True,
         exclude_log_file=True,
         change_permissions=True,
-        permissions="0660",
+        permissions="770",
     ):
         self.sync_ready = False
         self.source_directory = source_directory
@@ -286,6 +286,12 @@ class Synchronise:
                 f"Setting to: {self.create_dest}"
             )
 
+        try:
+            self.permissions = self.config.get("config", "permissions")
+
+        except configparser.NoOptionError:
+            pass
+
     def check_remote_dest(self):
         """
         Check whether the destination directory is on a remote machine.
@@ -436,7 +442,7 @@ class Synchronise:
         new_ownership = self.owner + ":" + self.group
         chown_string = ["chown", "-R", new_ownership]
 
-        chmod_string = ["chmod", self.permissions]
+        chmod_string = ["chmod", "-R", self.permissions]
 
         if not self.delete_destination_tar and self.untar:
             self.change_ownership_string = (
