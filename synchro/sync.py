@@ -34,7 +34,7 @@ class Synchronise:
         log_file,
         log_level="DEBUG",
         tar_options=["-cvlpf"],
-        untar_options=["-xvf"],
+        untar_options=["-xvpf"],
         rsync_options=["-aP"],
         untar=False,
         delete_source_tar=True,
@@ -72,11 +72,15 @@ class Synchronise:
         self.remote_host = None
         self.local_destination = []
 
+        self.owner = None
+        self.group = None
+
         self.mkdir_string = []
         self.tar_string = []
         self.untar_string = []
         self.delete_destination_tarball_string = []
         self.rsync_string = []
+        self.change_ownership_string = []
 
         self.read_config()
         self.check_sync_ready()
@@ -90,6 +94,13 @@ class Synchronise:
         """
         Ensure the files are in place before starting sync
         """
+        if self.delete_destination_tar and not self.untar:
+            print(
+                "Option to delete destination tar, but not extract first "
+                "selected. Defaulting to not delete destination tar. "
+            )
+            self.delete_destination_tar = False
+
         if not self.check_transfer_done_file():
             self.transfer_check_ready_file()
         else:
@@ -133,6 +144,8 @@ class Synchronise:
             if self.delete_destination_tar:
                 self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
+        self.get_permissions()
+        self.prep_change_ownership_string()
 
     def check_source_directory(self):
         """
@@ -404,6 +417,40 @@ class Synchronise:
         if self.remote_dest:
             self.untar_string = self.add_ssh_prefix(self.untar_string)
 
+    def prep_change_ownership_string(self):
+        """
+        Create command change permissions at destination
+        """
+
+        if self.delete_destination_tar and not self.untar:
+            self.abort()
+            raise DestinationDirectoryError(
+                "Tar archive deleted, but not extracted. Aborting"
+            )
+
+        new_ownership = self.owner + ":" + self.group
+        chown_string = ["chown", "-R", new_ownership]
+
+        if not self.delete_destination_tar and self.untar:
+            self.change_ownership_string = (
+                chown_string
+                + [str(self.dest_tar_archive)]
+                + [str(self.local_destination)]
+            )
+        elif self.delete_destination_tar and self.untar:
+            self.change_ownership_string = chown_string + [
+                str(self.local_destination)
+            ]
+        elif not self.delete_destination_tar and not self.untar:
+            self.change_ownership_string = chown_string + [
+                str(self.dest_tar_archive)
+            ]
+
+        if self.remote_dest:
+            self.change_ownership_string = self.add_ssh_prefix(
+                self.change_ownership_string
+            )
+
     def prep_delete_destination_tarball_string(self):
         """
         Create command to delete tar archive after untar
@@ -452,8 +499,18 @@ class Synchronise:
         if self.delete_source_tar:
             logging.debug("Removing source tar archive ")
             self.run_delete_source_tar()
+        logging.debug("Setting destination permissions")
+        self.set_permissions()
         self.write_transfer_done_file()
         self.write_log_footer()
+
+    def get_permissions(self):
+        """
+        Get permissions of source directory so they can be set the same at
+        destination
+        """
+        self.owner = self.source_directory.owner()
+        self.group = self.source_directory.group()
 
     def run_tar(self):
         execute_and_log(self.tar_string)
@@ -469,6 +526,12 @@ class Synchronise:
 
     def run_delete_source_tar(self):
         self.tar_archive.unlink()
+
+    def set_permissions(self):
+        """
+        Set permissions at destination
+        """
+        execute_and_log(self.change_ownership_string)
 
     def write_transfer_done_file(self):
         self.transfer_done_file().touch()
