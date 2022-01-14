@@ -57,6 +57,7 @@ synchro /path/to/source_directory
 This source directory must contain a `synchro.conf` file which contains the 
 information needed for the transfer. Including:
 * `destination` - Where to move the data to e.g. `/path/to/destination_directory`)
+* `tar` - Tar the data before copying? e.g. `y` 
 * `untar` - Untar the data after copying? e.g. `y`
 * `create_dest` - Create the destination directory if it doesn't exist? e.g. `y`
 * `transfer_ready_file` - A file that must exist in the source directory
@@ -75,6 +76,7 @@ if the line is missing from `synchro.conf`.
 **Example:**
 ```text
 destination = /path/to/destination_directory
+tar = y
 untar = y 
 create_dest = y 
 transfer_ready_file = ready.txt
