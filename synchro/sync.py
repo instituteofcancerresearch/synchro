@@ -165,7 +165,7 @@ class Synchronise:
 
     def check_inputs(self):
         """
-        Check inputs are correct for the sychronisation to proceed
+        Check inputs are correct for the synchronisation to proceed
         """
         self.check_destination_directory()
 
