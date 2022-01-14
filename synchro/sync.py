@@ -59,7 +59,6 @@ class Synchronise:
         self.config = []
         self.rsync_destination_directory = []
         self.delete_source_tar = delete_source_tar
-        self.delete_destination_tar = delete_destination_tar
         self.create_dest_parents = create_dest_parents
         self.exclude_log_file = exclude_log_file
         self.dest_exists = []
@@ -77,7 +76,12 @@ class Synchronise:
         self.read_config()
         self.paths = Paths(self.config, self.source_directory, log_filename)
         self.options = Options(
-            self.config, create_dest, tar, untar, permissions
+            self.config,
+            create_dest,
+            tar,
+            untar,
+            permissions,
+            delete_destination_tar,
         )
         self.check_sync_ready()
 
@@ -97,13 +101,6 @@ class Synchronise:
             self.abort()
             self.sync_ready = False
         else:
-            if self.delete_destination_tar and not self.options.untar:
-                print(
-                    "Option to delete destination tar, but not extract first "
-                    "selected. Defaulting to not delete destination tar. "
-                )
-                self.delete_destination_tar = False
-
             if not self.check_transfer_done_file():
                 self.transfer_check_ready_file()
             else:
@@ -141,7 +138,7 @@ class Synchronise:
         self.prep_tar_string()
         if self.options.untar:
             self.prep_untar_string()
-            if self.delete_destination_tar:
+            if self.options.delete_destination_tar:
                 self.prep_delete_destination_tarball_string()
         self.prep_rsync_string()
         self.get_ownership()
@@ -254,7 +251,7 @@ class Synchronise:
             self.tar_string,
             self.rsync_string,
             self.untar_string,
-            delete_destination_tar=self.delete_destination_tar,
+            delete_destination_tar=self.options.delete_destination_tar,
             delete_dest_tarball_string=self.delete_destination_tarball_string,
         )
 
@@ -328,7 +325,7 @@ class Synchronise:
         Create command change permissions at destination
         """
 
-        if self.delete_destination_tar and not self.options.untar:
+        if self.options.delete_destination_tar and not self.options.untar:
             self.abort()
             raise DestinationDirectoryError(
                 "Tar archive deleted, but not extracted. Aborting"
@@ -339,7 +336,7 @@ class Synchronise:
 
         chmod_string = ["chmod", "-R", self.options.permissions]
 
-        if not self.delete_destination_tar and self.options.untar:
+        if not self.options.delete_destination_tar and self.options.untar:
             self.change_ownership_string = (
                 chown_string
                 + [str(self.paths.dest_tar_archive)]
@@ -352,14 +349,16 @@ class Synchronise:
                 + [str(self.paths.local_destination)]
             )
 
-        elif self.delete_destination_tar and self.options.untar:
+        elif self.options.delete_destination_tar and self.options.untar:
             self.change_ownership_string = chown_string + [
                 str(self.paths.local_destination)
             ]
             self.change_permission_string = chmod_string + [
                 str(self.paths.local_destination)
             ]
-        elif not self.delete_destination_tar and not self.options.untar:
+        elif (
+            not self.options.delete_destination_tar and not self.options.untar
+        ):
             self.change_ownership_string = chown_string + [
                 str(self.paths.dest_tar_archive)
             ]
@@ -379,14 +378,17 @@ class Synchronise:
         """
         Create command to delete tar archive after untar
         """
-        self.delete_destination_tarball_string = [
+        self.options.delete_destination_tarball_string = [
             "rm",
             "-v",
             str(self.paths.dest_tar_archive),
         ]
         if self.paths.remote_destination:
-            self.delete_destination_tarball_string = create_cmd.add_ssh_prefix(
-                self.delete_destination_tarball_string, self.paths.remote_host
+            self.options.delete_destination_tarball_string = (
+                create_cmd.add_ssh_prefix(
+                    self.options.delete_destination_tarball_string,
+                    self.paths.remote_host,
+                )
             )
 
     def start_sync(self):
@@ -405,7 +407,7 @@ class Synchronise:
         if self.options.untar:
             logging.debug("Untaring files")
             self.run_untar()
-            if self.delete_destination_tar:
+            if self.options.delete_destination_tar:
                 logging.debug("Removing destination tar archive")
                 self.run_destination_tar_deletion()
         else:
@@ -433,7 +435,7 @@ class Synchronise:
         execute_and_log(self.tar_string)
 
     def run_destination_tar_deletion(self):
-        execute_and_log(self.delete_destination_tarball_string)
+        execute_and_log(self.options.delete_destination_tarball_string)
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)

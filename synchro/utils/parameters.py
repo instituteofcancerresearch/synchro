@@ -10,6 +10,7 @@ class Options:
         tar,
         untar,
         permissions,
+        delete_destination_tar,
         owner=None,
         group=None,
     ):
@@ -23,6 +24,9 @@ class Options:
         )
         self.owner, self.group = set_ownership(config, owner, group)
         self.permissions = set_permissions(config, permissions)
+        self.delete_destination_tar = set_delete_destination_tar(
+            delete_destination_tar, self.untar
+        )
 
 
 def set_ownership(config, owner, group):
@@ -42,6 +46,16 @@ def set_tar_options(config, run_tar=True, run_untar=False):
     else:
         run_untar = False
     return run_tar, run_untar
+
+
+def set_delete_destination_tar(delete_destination_tar, untar):
+    if delete_destination_tar and not untar:
+        print(
+            "Option to delete destination tar, but not extract first "
+            "selected. Defaulting to not delete destination tar. "
+        )
+        delete_destination_tar = False
+    return delete_destination_tar
 
 
 def try_set_parameter(
