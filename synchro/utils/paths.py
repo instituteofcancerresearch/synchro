@@ -10,7 +10,7 @@ from synchro.utils.misc import (
 
 class Paths:
     def __init__(self, config, source_directory, log_filename):
-
+        self.source_directory = source_directory
         self.destination_directory = self.set_destination_directory(config)
         (
             self.local_destination,

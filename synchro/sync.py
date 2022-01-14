@@ -10,7 +10,7 @@ from .utils.misc import (
 )
 
 from .utils import create_cmd
-from .utils.parameters import Options
+from .utils.options import Options
 from .utils.paths import Paths
 
 
@@ -46,6 +46,7 @@ class Synchronise:
         change_permissions=True,
         permissions="770",
     ):
+        self.start_time = datetime.now()
         self.sync_ready = False
         self.source_directory = source_directory
         self.config_file = config_file
@@ -54,11 +55,8 @@ class Synchronise:
         self.tar_flags = tar_flags
         self.flags = untar_flags
 
-        self.start_time = datetime.now()
-
         self.config = []
         self.rsync_destination_directory = []
-        self.delete_source_tar = delete_source_tar
         self.create_dest_parents = create_dest_parents
         self.exclude_log_file = exclude_log_file
         self.dest_exists = []
@@ -73,6 +71,8 @@ class Synchronise:
         self.change_ownership_string = []
         self.change_permission_string = []
 
+        self.files_to_sync = []
+
         self.read_config()
         self.paths = Paths(self.config, self.source_directory, log_filename)
         self.options = Options(
@@ -81,6 +81,7 @@ class Synchronise:
             tar,
             untar,
             permissions,
+            delete_source_tar,
             delete_destination_tar,
         )
         self.check_sync_ready()
@@ -135,11 +136,19 @@ class Synchronise:
     def prep_sync(self):
         self.check_source_directory()
         self.check_inputs()
-        self.prep_tar_string()
-        if self.options.untar:
-            self.prep_untar_string()
-            if self.options.delete_destination_tar:
-                self.prep_delete_destination_tarball_string()
+
+        if self.options.tar:
+            self.prep_tar_string()
+            if self.options.untar:
+                self.prep_untar_string()
+                if self.options.delete_destination_tar:
+                    self.prep_delete_destination_tarball_string()
+
+        if self.options.tar:
+            self.files_to_sync = self.paths.tar_archive
+        else:
+            self.files_to_sync = self.paths.source_directory
+
         self.prep_rsync_string()
         self.get_ownership()
         self.prep_change_ownership_permission_strings()
@@ -296,10 +305,15 @@ class Synchronise:
         """
         Create command to run rsync
         """
+        if not self.options.tar:
+            files_to_sync = str(self.files_to_sync) + "/"
+        else:
+            files_to_sync = self.files_to_sync
+
         self.rsync_string = [
             "rsync",
             *self.rsync_flags,
-            str(self.paths.tar_archive),
+            files_to_sync,
             str(self.paths.destination_directory),
         ]
 
@@ -324,55 +338,21 @@ class Synchronise:
         """
         Create command change permissions at destination
         """
-
-        if self.options.delete_destination_tar and not self.options.untar:
-            self.abort()
-            raise DestinationDirectoryError(
-                "Tar archive deleted, but not extracted. Aborting"
-            )
-
-        new_ownership = self.options.owner + ":" + self.options.group
-        chown_string = ["chown", "-R", new_ownership]
-
-        chmod_string = ["chmod", "-R", self.options.permissions]
-
-        if not self.options.delete_destination_tar and self.options.untar:
-            self.change_ownership_string = (
-                chown_string
-                + [str(self.paths.dest_tar_archive)]
-                + [str(self.paths.local_destination)]
-            )
-
-            self.change_permission_string = (
-                chmod_string
-                + [str(self.paths.dest_tar_archive)]
-                + [str(self.paths.local_destination)]
-            )
-
-        elif self.options.delete_destination_tar and self.options.untar:
-            self.change_ownership_string = chown_string + [
-                str(self.paths.local_destination)
-            ]
-            self.change_permission_string = chmod_string + [
-                str(self.paths.local_destination)
-            ]
-        elif (
-            not self.options.delete_destination_tar and not self.options.untar
-        ):
-            self.change_ownership_string = chown_string + [
-                str(self.paths.dest_tar_archive)
-            ]
-            self.change_permission_string = chmod_string + [
-                str(self.paths.dest_tar_archive)
-            ]
-
-        if self.paths.remote_destination:
-            self.change_ownership_string = create_cmd.add_ssh_prefix(
-                self.change_ownership_string, self.paths.remote_host
-            )
-            self.change_permission_string = create_cmd.add_ssh_prefix(
-                self.change_permission_string, self.paths.remote_host
-            )
+        (
+            self.change_ownership_string,
+            self.change_permission_string,
+        ) = create_cmd.change_ownership_permission(
+            self.options.tar,
+            self.options.untar,
+            self.options.delete_destination_tar,
+            self.options.owner,
+            self.options.group,
+            self.options.permissions,
+            self.paths.dest_tar_archive,
+            self.paths.local_destination,
+            self.paths.remote_host,
+            self.paths.remote_destination,
+        )
 
     def prep_delete_destination_tarball_string(self):
         """
@@ -399,8 +379,9 @@ class Synchronise:
             self._start_sync()
 
     def _start_sync(self):
-        logging.debug("Starting tar archiving")
-        self.run_tar()
+        if self.options.tar:
+            logging.debug("Starting tar archiving")
+            self.run_tar()
         logging.debug("Starting rsync")
         self.run_rsync()
         logging.debug("Rsync completed")
@@ -413,7 +394,7 @@ class Synchronise:
         else:
             logging.debug("Not untaring files")
         logging.debug("Writing 'transfer.done' file")
-        if self.delete_source_tar:
+        if self.options.delete_source_tar:
             logging.debug("Removing source tar archive ")
             self.run_delete_source_tar()
         logging.debug("Setting destination ownership and permissions")

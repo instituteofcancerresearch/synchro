@@ -10,6 +10,7 @@ class Options:
         tar,
         untar,
         permissions,
+        delete_source_tar,
         delete_destination_tar,
         owner=None,
         group=None,
@@ -19,13 +20,16 @@ class Options:
             config, create_dest, "create_dest"
         )
 
-        self.tar, self.untar = set_tar_options(
-            config, run_tar=tar, run_untar=untar
+        self.tar, self.untar, self.delete_source_tar = set_tar_options(
+            config,
+            run_tar=tar,
+            run_untar=untar,
+            delete_source_tar=delete_source_tar,
         )
         self.owner, self.group = set_ownership(config, owner, group)
         self.permissions = set_permissions(config, permissions)
         self.delete_destination_tar = set_delete_destination_tar(
-            delete_destination_tar, self.untar
+            delete_destination_tar, self.tar, self.untar
         )
 
 
@@ -39,21 +43,29 @@ def set_permissions(config, permissions):
     return try_set_parameter(config, permissions, "permissions")
 
 
-def set_tar_options(config, run_tar=True, run_untar=False):
+def set_tar_options(
+    config, run_tar=True, run_untar=False, delete_source_tar=True
+):
     run_tar = try_set_boolean_with_default(config, run_tar, "tar")
     if run_tar:
         run_untar = try_set_boolean_with_default(config, run_untar, "untar")
+        delete_source_tar = delete_source_tar
     else:
         run_untar = False
-    return run_tar, run_untar
+        delete_source_tar = False
+
+    return run_tar, run_untar, delete_source_tar
 
 
-def set_delete_destination_tar(delete_destination_tar, untar):
-    if delete_destination_tar and not untar:
-        print(
-            "Option to delete destination tar, but not extract first "
-            "selected. Defaulting to not delete destination tar. "
-        )
+def set_delete_destination_tar(delete_destination_tar, tar, untar):
+    if tar:
+        if delete_destination_tar and not untar:
+            print(
+                "Option to delete destination tar, but not extract first "
+                "selected. Defaulting to not delete destination tar. "
+            )
+            delete_destination_tar = False
+    else:
         delete_destination_tar = False
     return delete_destination_tar
 
