@@ -176,7 +176,7 @@ class Synchronise:
         either create it, or raise an error (depending on config).
         """
         if self.paths.remote_destination:
-            if not self.paths.remote_destination_exists():
+            if not self.remote_dest_exists():
                 self.deal_with_missing_destination_directory()
         else:
             if not self.paths.destination_directory.exists():
@@ -355,21 +355,13 @@ class Synchronise:
         )
 
     def prep_delete_destination_tarball_string(self):
-        """
-        Create command to delete tar archive after untar
-        """
-        self.options.delete_destination_tarball_string = [
-            "rm",
-            "-v",
-            str(self.paths.dest_tar_archive),
-        ]
-        if self.paths.remote_destination:
-            self.options.delete_destination_tarball_string = (
-                create_cmd.add_ssh_prefix(
-                    self.options.delete_destination_tarball_string,
-                    self.paths.remote_host,
-                )
+        self.delete_destination_tarball_string = (
+            create_cmd.delete_destination_tarball_string(
+                self.paths.dest_tar_archive,
+                self.paths.remote_host,
+                self.paths.remote_destination,
             )
+        )
 
     def start_sync(self):
         """
@@ -416,7 +408,7 @@ class Synchronise:
         execute_and_log(self.tar_string)
 
     def run_destination_tar_deletion(self):
-        execute_and_log(self.options.delete_destination_tarball_string)
+        execute_and_log(self.delete_destination_tarball_string)
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
@@ -431,8 +423,8 @@ class Synchronise:
         """
         Set ownership at destination
         """
-        execute_and_log(self.change_ownership_string)
         if self.change_permissions:
+            execute_and_log(self.change_ownership_string)
             execute_and_log(self.change_permission_string)
 
     def write_transfer_done_file(self):

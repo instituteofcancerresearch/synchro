@@ -36,8 +36,8 @@ def cli_parser():
         "--no-permission-change",
         dest="change_permissions",
         action="store_false",
-        help="Don't change permissions of destination files. "
-        "Useful for debugging",
+        help="Don't change permissions or ownership of destination files. "
+        "Useful for debugging or if not running as root.",
     )
 
     return parser

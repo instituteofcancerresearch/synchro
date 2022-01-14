@@ -26,6 +26,9 @@ def change_ownership_permission(
 ):
     """
     Create command change permissions at destination
+
+    Command depends on whether the tar archive, the destination directory
+    or both will remain at the destination.
     """
     if tar:
         if delete_destination_tar and not untar:
@@ -74,3 +77,22 @@ def change_ownership_permission(
         )
 
     return change_ownership_string, change_permission_string
+
+
+def delete_destination_tarball_string(
+    dest_tar_archive, remote_host, remote_destination=False
+):
+    """
+    Create command to delete tar archive after untar
+    """
+    delete_dest_tarball_string = [
+        "rm",
+        "-v",
+        str(dest_tar_archive),
+    ]
+    if remote_destination:
+        delete_dest_tarball_string = add_ssh_prefix(
+            delete_dest_tarball_string,
+            remote_host,
+        )
+    return delete_dest_tarball_string
