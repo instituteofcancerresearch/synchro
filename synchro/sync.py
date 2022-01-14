@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from .utils import (
-    initalise_logger,
+from .utils.logging import initalise_logger, write_log_header, write_log_footer
+from .utils.misc import (
     get_config_obj,
     execute_and_log,
     check_pathlib_remote,
@@ -338,28 +338,16 @@ class Synchronise:
         Write a standardised header to the log file
         """
 
-        logging.debug("************ TRANSFER LOG ************")
-        logging.info(
-            f"Transferring directory: {self.source_directory} to "
-            f"{self.destination_directory}"
+        write_log_header(
+            self.start_time,
+            self.source_directory,
+            self.destination_directory,
+            self.tar_string,
+            self.rsync_string,
+            self.untar_string,
+            delete_destination_tar=self.delete_destination_tar,
+            delete_dest_tarball_string=self.delete_destination_tarball_string,
         )
-        logging.debug(
-            f"Transfer started: "
-            f"{self.start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
-        )
-        logging.debug(f"Source directory: {self.source_directory}")
-        logging.debug(f"Destination directory: {self.destination_directory}")
-        logging.debug(f"tar command: {self.tar_string}")
-        logging.debug(f"rsync command: {self.rsync_string}")
-        if self.untar_string:
-            logging.debug(f"untar command: {self.untar_string}")
-        if self.delete_destination_tar:
-            logging.debug(
-                f"deletion command: {self.delete_destination_tarball_string}"
-            )
-
-        logging.debug("**************************************\n")
-        logging.debug("Starting log")
 
     def prep_tar_archive_name(self):
         """
@@ -589,18 +577,7 @@ class Synchronise:
         self.write_log_footer()
 
     def write_log_footer(self):
-        """
-        Write a standardised footer to the log file
-        """
-        end_time = datetime.now()
-        transfer_duration = end_time - self.start_time
-        logging.info("Transfer ended")
-        logging.debug(
-            f"Transfer ended at:  "
-            f"{self.start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
-        )
-
-        logging.debug(f"Time taken: {transfer_duration}")
+        write_log_footer(self.start_time)
 
 
 def run_sychronisation(

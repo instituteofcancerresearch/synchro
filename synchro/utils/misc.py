@@ -1,4 +1,3 @@
-import sys
 import logging
 import subprocess
 from configparser import ConfigParser
@@ -18,33 +17,6 @@ def get_config_obj(config_path):
     with open(config_path) as stream:
         parser.read_string("[config]\n" + stream.read())
     return parser
-
-
-def initalise_logger(filename, print_level="INFO", file_level="DEBUG"):
-    """
-    Start logging to file and stdout
-    :param filename: Where to save the logs to
-    :param print_level: What level of logging to send to stdout.
-    :param file_level: What level of logging to print to file.
-    """
-
-    logger = logging.getLogger()
-    logger.setLevel(getattr(logging, file_level))
-
-    formatter = logging.Formatter()
-    formatter.datefmt = "%Y-%m-%d %H:%M:%S %p"
-
-    if filename is not None:
-        fh = logging.FileHandler(filename)
-        fh.setLevel(getattr(logging, file_level))
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(getattr(logging, print_level))
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
 
 
 def execute_and_yield_output(cmd):
