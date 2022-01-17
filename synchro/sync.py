@@ -105,6 +105,7 @@ class Synchronise:
             if not self.check_transfer_done_file():
                 self.transfer_check_ready_file()
             else:
+                print("Transfer done file exists")
                 self.sync_ready = False
 
         if not self.sync_ready:
