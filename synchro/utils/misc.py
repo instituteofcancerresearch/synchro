@@ -1,9 +1,11 @@
 import logging
 import subprocess
 from configparser import ConfigParser
+from pathlib import Path
+from typing import Union
 
 
-def get_config_obj(config_path):
+def get_config_obj(config_path: Union[Path, str]) -> ConfigParser:
     """
     Read conf file
     From https://stackoverflow.com/questions/2885190
@@ -71,7 +73,7 @@ def split_pathlib(path, separator=":"):
     return components
 
 
-def check_pathlib_remote(path):
+def check_pathlib_remote(path: Path) -> bool:
     """
     Check whether a pathlib object refers to a remote directory
     (assumes a colon separates the address and directory)
@@ -85,7 +87,7 @@ def check_pathlib_remote(path):
         return False
 
 
-def return_pathlib_remote_components(path):
+def return_pathlib_remote_components(path: Path) -> list[str]:
     """
     Alias for splitting pathlib using default split (colon) character
     Returns the  address and directory

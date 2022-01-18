@@ -2,10 +2,11 @@ class DestinationDirectoryError(Exception):
     pass
 
 
-def add_ssh_prefix(cmd, remote_host):
+def add_ssh_prefix(cmd: list[str], remote_host: str) -> list:
     """
     Prefix a command with "ssh <remote_address>" for remote use
     :param cmd: Command to be run remotely
+    :param remote_host: Remote machine address
     :return: Command with prefix
     """
     ssh_string = ["ssh", remote_host]

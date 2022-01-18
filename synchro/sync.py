@@ -235,7 +235,7 @@ class Synchronise:
 
     def read_config(self):
         """
-        Read the .conf file and parse to set up the synchronisation
+        Read the .conf file to set up the synchronisation
         """
         if not self.config_file.exists():
             raise ConfigFileError(
