@@ -19,6 +19,7 @@ jobs:
         run: |
           black ./ --check
           flake8
+          mypy synchro
   test:
     needs: lint
     runs-on: ${{ matrix.os }}
