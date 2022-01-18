@@ -63,11 +63,11 @@ class Synchronise:
 
         self.change_permissions = change_permissions
 
-        self.mkdir_string = []
-        self.tar_string = []
-        self.untar_string = []
-        self.delete_destination_tarball_string = []
-        self.rsync_string = []
+        self.mkdir_string = None
+        self.tar_string = None
+        self.untar_string = None
+        self.delete_destination_tarball_string = None
+        self.rsync_string = None
         self.change_ownership_string = []
         self.change_permission_string = []
 
@@ -258,10 +258,9 @@ class Synchronise:
             self.start_time,
             self.source_directory,
             self.paths.destination_directory,
-            self.tar_string,
             self.rsync_string,
+            self.tar_string,
             self.untar_string,
-            delete_destination_tar=self.options.delete_destination_tar,
             delete_dest_tarball_string=self.delete_destination_tarball_string,
         )
 

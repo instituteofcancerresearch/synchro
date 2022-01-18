@@ -1,10 +1,13 @@
 import sys
 import logging
-
+from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 
-def initalise_logger(filename, print_level="INFO", file_level="DEBUG"):
+def initalise_logger(
+    filename: str, print_level: str = "INFO", file_level: str = "DEBUG"
+) -> logging.Logger:
     """
     Start logging to file and stdout
     :param filename: Where to save the logs to
@@ -32,14 +35,13 @@ def initalise_logger(filename, print_level="INFO", file_level="DEBUG"):
 
 
 def write_log_header(
-    start_time,
-    source_directory,
-    destination_directory,
-    tar_string,
-    rsync_string,
-    untar_string,
-    delete_destination_tar=False,
-    delete_dest_tarball_string=None,
+    start_time: datetime,
+    source_directory: Path,
+    destination_directory: Path,
+    rsync_string: str,
+    tar_string: Optional[str] = None,
+    untar_string: Optional[str] = None,
+    delete_dest_tarball_string: Optional[str] = None,
 ):
     """
     Write a standardised header to the log file
@@ -55,18 +57,19 @@ def write_log_header(
     )
     logging.debug(f"Source directory: {source_directory}")
     logging.debug(f"Destination directory: {destination_directory}")
-    logging.debug(f"tar command: {tar_string}")
+    if tar_string is not None:
+        logging.debug(f"tar command: {tar_string}")
     logging.debug(f"rsync command: {rsync_string}")
-    if untar_string:
+    if untar_string is not None:
         logging.debug(f"untar command: {untar_string}")
-    if delete_destination_tar:
+    if delete_dest_tarball_string is not None:
         logging.debug(f"deletion command: {delete_dest_tarball_string}")
 
     logging.debug("**************************************\n")
     logging.debug("Starting log")
 
 
-def write_log_footer(start_time):
+def write_log_footer(start_time: datetime):
     """
     Write a standardised footer to the log file
     """

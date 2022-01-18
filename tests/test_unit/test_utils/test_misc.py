@@ -1,7 +1,6 @@
-import logging
 from pathlib import Path
 from synchro.utils import misc
-from ...utils.utils import create_conf_file
+from ...utils.utils import create_conf_file, setup_simple_log
 
 
 def test_get_config_obj(tmpdir):
@@ -23,7 +22,7 @@ def test_execute_and_yield_output(tmpdir):
 
 def test_execute_and_log(tmpdir):
     log_file = tmpdir / "log.log"
-    setup_log(log_file)
+    setup_simple_log(log_file)
 
     cmd = ["echo", "test"]
     misc.execute_and_log(cmd)
@@ -49,11 +48,3 @@ def test_return_pathlib_remote_components():
     components = misc.return_pathlib_remote_components(path)
     assert components[0] == "user@remote"
     assert components[1] == "/path/to/dir"
-
-
-def setup_log(filename, file_level="DEBUG"):
-    logger = logging.getLogger()
-    logger.setLevel(getattr(logging, file_level))
-    fh = logging.FileHandler(filename)
-    fh.setLevel(getattr(logging, file_level))
-    logger.addHandler(fh)
