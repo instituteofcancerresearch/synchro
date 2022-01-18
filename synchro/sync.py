@@ -73,6 +73,7 @@ class Synchronise:
 
         self.files_to_sync = []
 
+        self.check_source_directory()
         self.read_config()
         self.paths = Paths(self.config, self.source_directory, log_filename)
         self.options = Options(
@@ -97,7 +98,7 @@ class Synchronise:
         """
         if self.paths.destination_directory is None:
             logging.error(
-                "Destination directory is not set in the " "config file"
+                "Destination directory is not set in the config file"
             )
             self.abort()
             self.sync_ready = False
@@ -135,7 +136,6 @@ class Synchronise:
             self.sync_ready = True
 
     def prep_sync(self):
-        self.check_source_directory()
         self.check_inputs()
 
         if self.options.tar:
