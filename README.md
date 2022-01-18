@@ -21,7 +21,7 @@ Synchro currently supports/includes:
 * Logging to file
 
 ## To install
-To install, you need a Unix-based system with Python (>3.6) installed, and then:
+To install, you need a Unix-based system with Python (>=3.9) installed, and then:
 
 ```bash
 pip install synchro
@@ -30,7 +30,7 @@ pip install synchro
 However, it is recommended to install conda (e.g. [miniconda](https://docs.conda.io/en/latest/miniconda.html)) first and create a new environment:
 
 ```bash
-conda create --name synchro python=3.9
+conda create --name synchro python=3.10
 conda activate synchro
 pip install synchro
 ```
