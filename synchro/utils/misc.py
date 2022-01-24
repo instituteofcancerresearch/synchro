@@ -1,10 +1,11 @@
-import sys
 import logging
 import subprocess
 from configparser import ConfigParser
+from pathlib import Path
+from typing import Union
 
 
-def get_config_obj(config_path):
+def get_config_obj(config_path: Union[Path, str]) -> ConfigParser:
     """
     Read conf file
     From https://stackoverflow.com/questions/2885190
@@ -18,33 +19,6 @@ def get_config_obj(config_path):
     with open(config_path) as stream:
         parser.read_string("[config]\n" + stream.read())
     return parser
-
-
-def initalise_logger(filename, print_level="INFO", file_level="DEBUG"):
-    """
-    Start logging to file and stdout
-    :param filename: Where to save the logs to
-    :param print_level: What level of logging to send to stdout.
-    :param file_level: What level of logging to print to file.
-    """
-
-    logger = logging.getLogger()
-    logger.setLevel(getattr(logging, file_level))
-
-    formatter = logging.Formatter()
-    formatter.datefmt = "%Y-%m-%d %H:%M:%S %p"
-
-    if filename is not None:
-        fh = logging.FileHandler(filename)
-        fh.setLevel(getattr(logging, file_level))
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(getattr(logging, print_level))
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
 
 
 def execute_and_yield_output(cmd):
@@ -99,7 +73,7 @@ def split_pathlib(path, separator=":"):
     return components
 
 
-def check_pathlib_remote(path):
+def check_pathlib_remote(path: Path) -> bool:
     """
     Check whether a pathlib object refers to a remote directory
     (assumes a colon separates the address and directory)
@@ -113,7 +87,7 @@ def check_pathlib_remote(path):
         return False
 
 
-def return_pathlib_remote_components(path):
+def return_pathlib_remote_components(path: Path) -> list[str]:
     """
     Alias for splitting pathlib using default split (colon) character
     Returns the  address and directory

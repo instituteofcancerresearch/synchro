@@ -21,7 +21,7 @@ Synchro currently supports/includes:
 * Logging to file
 
 ## To install
-To install, you need a Unix-based system with Python (>3.6) installed, and then:
+To install, you need a Unix-based system with Python (>=3.9) installed, and then:
 
 ```bash
 pip install synchro
@@ -30,7 +30,7 @@ pip install synchro
 However, it is recommended to install conda (e.g. [miniconda](https://docs.conda.io/en/latest/miniconda.html)) first and create a new environment:
 
 ```bash
-conda create --name synchro python=3.9
+conda create --name synchro python=3.10
 conda activate synchro
 pip install synchro
 ```
@@ -57,18 +57,32 @@ synchro /path/to/source_directory
 This source directory must contain a `synchro.conf` file which contains the 
 information needed for the transfer. Including:
 * `destination` - Where to move the data to e.g. `/path/to/destination_directory`)
+* `tar` - Tar the data before copying? e.g. `y` 
 * `untar` - Untar the data after copying? e.g. `y`
 * `create_dest` - Create the destination directory if it doesn't exist? e.g. `y`
 * `transfer_ready_file` - A file that must exist in the source directory
 (or relative path) for the transfer to initative. This option is ignored if the line is
-missing from `synchro.conf`
+missing from `synchro.conf`.
+* `permissions`  - Permissions for the destination file, in the
+[chmod numerical format](Ohttps://chmodcommand.com/chmod-777/). e.g. `777`.
+This option is ignored and defaults to `770` if the line is missing from `synchro.conf`.
+* `owner`  - Username for ownership of the transferred files. 
+This option is ignored and defaults to that of the source directory 
+if the line is missing from `synchro.conf`.
+* `group`  - Group for ownership of the transferred files. 
+This option is ignored and defaults to that of the source directory 
+if the line is missing from `synchro.conf`.
 
 **Example:**
 ```text
 destination = /path/to/destination_directory
+tar = y
 untar = y 
 create_dest = y 
 transfer_ready_file = ready.txt
+permissions = 777
+owner = user1
+group = staff
 ```
 
 N.B. the destination can also be on a remote host 

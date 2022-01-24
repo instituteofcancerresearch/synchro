@@ -19,21 +19,14 @@ jobs:
         run: |
           black ./ --check
           flake8
+          mypy synchro
   test:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
-        exclude:
-          - os: macos-latest
-            python-version: 3.6
-          - os: macos-latest
-            python-version: 3.7
-          - os: macos-latest
-            python-version: 3.8
-
+        python-version: ["3.9", "3.10"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
