@@ -51,11 +51,12 @@ brew install rsync
 ### Config file
 The only input is the path to a source directory (the one being transferred).
 ```bash
-synchro /path/to/source_directory
+synchro /path/to/config.conf
 ```
 
 This source directory must contain a `synchro.conf` file which contains the 
 information needed for the transfer. Including:
+* `source` - Where the data comes from (contents of directory will be copied) e.g. `/path/to/source_directory`)
 * `destination` - Where to move the data to e.g. `/path/to/destination_directory`)
 * `tar` - Tar the data before copying? e.g. `y` 
 * `untar` - Untar the data after copying? e.g. `y`
@@ -75,6 +76,7 @@ if the line is missing from `synchro.conf`.
 
 **Example:**
 ```text
+source = /path/to/source_directory
 destination = /path/to/destination_directory
 tar = y
 untar = y 
@@ -103,8 +105,8 @@ touch synchro
 ```
 * Add `synchro` commands to the text file using the full path to the synchro executable
 ```text
-/home/user/miniconda3/envs/synchro/bin/synchro /path/to/directory1
-/home/user/miniconda3/envs/synchro/bin/synchro /path/to/directory2
+/home/user/miniconda3/envs/synchro/bin/synchro /path/to/config_1.conf
+/home/user/miniconda3/envs/synchro/bin/synchro /path/to/config_2.conf
 ```
 
-This will then try to backup `directory1` & `directory2` every hour.
+This will then try to backup the directories specified in `config_1.conf` & `config_2.conf` every hour.

@@ -12,15 +12,8 @@ def cli_parser():
     parser.add_argument_group("Synchro options")
 
     parser.add_argument(
-        dest="source_directory",
-        type=Path,
-        help="Directory to be synchronised",
-    )
-
-    parser.add_argument(
-        "--config-file",
         dest="config_file",
-        type=str,
+        type=Path,
         default="synchro.conf",
         help="Name of the config file",
     )
@@ -45,10 +38,8 @@ def cli_parser():
 
 def main():
     args = cli_parser().parse_args()
-    source_directory = args.source_directory
-    config_file = source_directory / args.config_file
     run_sychronisation(
-        source_directory, config_file, args.log_file, args.change_permissions
+        args.config_file, args.log_file, args.change_permissions
     )
 
 

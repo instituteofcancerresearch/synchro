@@ -9,8 +9,8 @@ from synchro.utils.misc import (
 
 
 class Paths:
-    def __init__(self, config, source_directory, log_filename):
-        self.source_directory = source_directory
+    def __init__(self, config, log_filename):
+        self.source_directory = self.set_source_directory(config)
         self.destination_directory = self.set_destination_directory(config)
         (
             self.local_destination,
@@ -18,16 +18,24 @@ class Paths:
             self.remote_destination,
         ) = self.check_remote_dest(self.destination_directory)
         self.transfer_ready_file = self.set_transfer_initiation(
-            config, source_directory
+            config, self.source_directory
         )
         self.log_filename = self.set_log_filename(
-            log_filename, source_directory
+            log_filename, self.source_directory
         )
-        self.tar_archive = source_directory.parent / (
-            source_directory.name + ".tar"
+        self.tar_archive = self.source_directory.parent / (
+            self.source_directory.name + ".tar"
         )
         self.dest_tar_archive = self.local_destination / self.tar_archive.name
-        self.transfer_done_file = source_directory / "transfer.done"
+        self.transfer_done_file = self.source_directory / "transfer.done"
+
+    @staticmethod
+    def set_source_directory(config):
+        try:
+            source_directory = Path(config.get("config", "source"))
+        except configparser.NoOptionError:
+            source_directory = None
+        return source_directory
 
     @staticmethod
     def set_destination_directory(config):
