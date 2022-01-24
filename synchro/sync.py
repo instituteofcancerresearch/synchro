@@ -29,7 +29,6 @@ class DestinationDirectoryError(Exception):
 class Synchronise:
     def __init__(
         self,
-        source_directory,
         config_file,
         log_filename,
         log_level="DEBUG",
@@ -48,7 +47,6 @@ class Synchronise:
     ):
         self.start_time = datetime.now()
         self.sync_ready = False
-        self.source_directory = source_directory
         self.config_file = config_file
         self.log_level = log_level
         self.rsync_flags = rsync_flags
@@ -73,9 +71,9 @@ class Synchronise:
 
         self.files_to_sync = []
 
-        self.check_source_directory()
         self.read_config()
-        self.paths = Paths(self.config, self.source_directory, log_filename)
+        self.paths = Paths(self.config, log_filename)
+        self.check_source_directory()
         self.options = Options(
             self.config,
             create_dest,
@@ -158,9 +156,9 @@ class Synchronise:
         """
         Check whether the source directory exists before proceeding
         """
-        if not self.source_directory.exists():
+        if not self.paths.source_directory.exists():
             error = (
-                f"Source directory: {self.source_directory} "
+                f"Source directory: {self.paths.source_directory} "
                 f"does not exist."
             )
             raise SourceDirectoryError(error)
@@ -256,7 +254,7 @@ class Synchronise:
 
         write_log_header(
             self.start_time,
-            self.source_directory,
+            self.paths.source_directory,
             self.paths.destination_directory,
             self.rsync_string,
             self.tar_string,
@@ -296,7 +294,7 @@ class Synchronise:
             *self.tar_flags,
             str(self.paths.tar_archive),
             "-C",
-            str(self.source_directory),
+            str(self.paths.source_directory),
             ".",
         ]
         self.tar_string = self.tar_string + cmd
@@ -400,9 +398,9 @@ class Synchronise:
         destination
         """
         if self.options.owner is None:
-            self.options.owner = self.source_directory.owner()
+            self.options.owner = self.paths.source_directory.owner()
         if self.options.group is None:
-            self.options.group = self.source_directory.group()
+            self.options.group = self.paths.source_directory.group()
 
     def run_tar(self):
         execute_and_log(self.tar_string)
@@ -441,11 +439,8 @@ class Synchronise:
         write_log_footer(self.start_time)
 
 
-def run_sychronisation(
-    source_directory, config_file, log_file, change_permissions=True
-):
+def run_sychronisation(config_file, log_file, change_permissions=True):
     synchro = Synchronise(
-        source_directory,
         config_file,
         log_file,
         change_permissions=change_permissions,

@@ -12,6 +12,7 @@ def create_conf_file(
 ):
     conf_file = source_dir / filename
     with open(conf_file, "w") as f:
+        f.write(f"source = {source_dir}\n")
         f.write(f"destination = {dest_dir}\n")
         f.write(f"tar = {tar}\n")
         f.write(f"untar = {untar}\n")
@@ -19,6 +20,8 @@ def create_conf_file(
 
         if ready_file is not None:
             f.write(f"transfer_ready_file = {ready_file}\n")
+
+    return conf_file
 
 
 def setup_simple_log(filename, file_level="DEBUG"):
