@@ -107,6 +107,9 @@ class Synchronise:
             )
             self.abort()
             self.sync_ready = False
+        elif self.check_transfer_in_prog_file():
+            print("Existing transfer still in progress...")
+            self.sync_ready = False
         else:
             if not self.check_transfer_done_file():
                 self.transfer_check_ready_file()
@@ -123,6 +126,9 @@ class Synchronise:
         signifying transfer has already taken place.
         """
         return self.paths.transfer_done_file.exists()
+
+    def check_transfer_in_prog_file(self):
+        return self.paths.transfer_in_prog_file.exists()
 
     def transfer_check_ready_file(self):
         """
@@ -293,11 +299,13 @@ class Synchronise:
             self.tar_string = [
                 "tar",
                 "--exclude=synchro*.log",
+                "--exclude=transfer.ongoing",
             ]
         elif self.exclude_log_file:
             self.tar_string = [
                 "tar",
                 f"--exclude={self.paths.log_filename.name}",
+                "--exclude=transfer.ongoing",
             ]
         else:
             self.tar_string = ["tar"]
@@ -390,6 +398,9 @@ class Synchronise:
             self._start_sync()
 
     def _start_sync(self):
+
+        self._create_in_progress_file()
+
         if self.options.tar:
             logging.debug("Starting tar archiving")
             self.run_tar()
@@ -415,6 +426,8 @@ class Synchronise:
             self.write_transfer_done_file()
 
         self.write_log_footer()
+
+        self._delete_in_progress_file()
 
     def get_ownership(self):
         """
@@ -458,7 +471,8 @@ class Synchronise:
         """
         logging.error("SYNC FAILED")
         self.write_log_footer()
-        # TODO: Add job failed file
+        self._delete_in_progress_file()
+        # TODO: Build email notification
 
     def write_log_footer(self):
         write_log_footer(self.start_time)
