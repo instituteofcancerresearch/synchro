@@ -13,6 +13,8 @@ from .utils import create_cmd
 from .utils.options import Options
 from .utils.paths import Paths
 
+from pathlib import Path
+
 
 class ConfigFileError(Exception):
     pass
@@ -28,22 +30,24 @@ class DestinationDirectoryError(Exception):
 
 class Synchronise:
     def __init__(
-        self,
-        config_file,
-        log_filename,
-        log_level="DEBUG",
-        tar_flags=["-cvlpf"],
-        untar_flags=["-xvpf"],
-        rsync_flags=["-aP"],
-        tar=True,
-        untar=True,
-        delete_source_tar=True,
-        delete_destination_tar=True,
-        create_dest=False,
-        create_dest_parents=True,
-        exclude_log_file=True,
-        change_permissions=True,
-        permissions="770",
+            self,
+            config_file,
+            log_filename,
+            log_level="DEBUG",
+            tar_flags=["-cvlpf"],
+            untar_flags=["-xvpf"],
+            rsync_flags=["-aP"],
+            tar=True,
+            untar=True,
+            delete_source_tar=True,
+            delete_destination_tar=True,
+            create_dest=False,
+            create_dest_parents=True,
+            exclude_log_file=True,
+            change_permissions=True,
+            permissions="770",
+            exclude_all_synchro_logs=False,
+            write_transfer_done=True
     ):
         self.start_time = datetime.now()
         self.sync_ready = False
@@ -52,6 +56,8 @@ class Synchronise:
         self.rsync_flags = rsync_flags
         self.tar_flags = tar_flags
         self.flags = untar_flags
+        self.exclude_all_synchro_logs = exclude_all_synchro_logs
+        self.write_transfer_done = write_transfer_done
 
         self.config = []
         self.rsync_destination_directory = []
@@ -183,8 +189,7 @@ class Synchronise:
 
     def remote_dest_exists(self):
         """
-        Check if the destination directory exists on a remote machine
-        :return: True if directory exists
+        Check if the destination directory exists on a remote machine.
         """
         return check_remote_dir_exists(
             self.paths.remote_host, self.paths.local_destination
@@ -282,7 +287,13 @@ class Synchronise:
         Create tar command, including '-C' flag to move to directory before
         archiving.
         """
-        if self.exclude_log_file:
+
+        if self.exclude_all_synchro_logs:
+            self.tar_string = [
+                "tar",
+                "--exclude=synchro*.log",
+            ]
+        elif self.exclude_log_file:
             self.tar_string = [
                 "tar",
                 f"--exclude={self.paths.log_filename.name}",
@@ -361,6 +372,12 @@ class Synchronise:
             )
         )
 
+    def _create_in_progress_file(self):
+        """
+        Creates temporary file to indicate synchro is in progress
+        """
+        Path.touch(self.paths.in_progress_file, exist_ok=False)
+
     def start_sync(self):
         """
         Run the full synchronisation workflow
@@ -389,7 +406,10 @@ class Synchronise:
             self.run_delete_source_tar()
         logging.debug("Setting destination ownership and permissions")
         self.set_ownership_permissions()
-        self.write_transfer_done_file()
+
+        if self.write_transfer_done:
+            self.write_transfer_done_file()
+
         self.write_log_footer()
 
     def get_ownership(self):
@@ -439,10 +459,18 @@ class Synchronise:
         write_log_footer(self.start_time)
 
 
-def run_sychronisation(config_file, log_file, change_permissions=True):
+def run_sychronisation(
+        config_file,
+        log_file,
+        change_permissions=True,
+        write_transfer_done=True,
+        exclude_all_synchro_logs=False
+):
     synchro = Synchronise(
         config_file,
         log_file,
         change_permissions=change_permissions,
+        write_transfer_done=write_transfer_done,
+        exclude_all_synchro_logs=exclude_all_synchro_logs
     )
     synchro.start_sync()
