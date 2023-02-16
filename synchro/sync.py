@@ -1,4 +1,5 @@
 import logging
+import os
 
 from datetime import datetime
 
@@ -377,6 +378,9 @@ class Synchronise:
         Creates temporary file to indicate synchro is in progress
         """
         Path.touch(self.paths.transfer_in_prog_file, exist_ok=False)
+
+    def _delete_in_progress_file(self):
+        os.remove(self.paths.transfer_in_prog_file)
 
     def start_sync(self):
         """
