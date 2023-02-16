@@ -376,7 +376,7 @@ class Synchronise:
         """
         Creates temporary file to indicate synchro is in progress
         """
-        Path.touch(self.paths.in_progress_file, exist_ok=False)
+        Path.touch(self.paths.transfer_in_prog_file, exist_ok=False)
 
     def start_sync(self):
         """
@@ -454,6 +454,7 @@ class Synchronise:
         """
         logging.error("SYNC FAILED")
         self.write_log_footer()
+        # TODO: Add job failed file
 
     def write_log_footer(self):
         write_log_footer(self.start_time)
