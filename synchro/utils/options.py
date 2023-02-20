@@ -15,7 +15,6 @@ class Options:
         owner=None,
         group=None,
     ):
-
         self.create_dest = try_set_boolean_with_default(
             config, create_dest, "create_dest"
         )

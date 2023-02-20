@@ -31,24 +31,24 @@ class DestinationDirectoryError(Exception):
 
 class Synchronise:
     def __init__(
-            self,
-            config_file,
-            log_filename,
-            log_level="DEBUG",
-            tar_flags=["-cvlpf"],
-            untar_flags=["-xvpf"],
-            rsync_flags=["-aP"],
-            tar=True,
-            untar=True,
-            delete_source_tar=True,
-            delete_destination_tar=True,
-            create_dest=False,
-            create_dest_parents=True,
-            exclude_log_file=True,
-            change_permissions=True,
-            permissions="770",
-            exclude_all_synchro_logs=False,
-            write_transfer_done=True
+        self,
+        config_file,
+        log_filename,
+        log_level="DEBUG",
+        tar_flags=["-cvlpf"],
+        untar_flags=["-xvpf"],
+        rsync_flags=["-aP"],
+        tar=True,
+        untar=True,
+        delete_source_tar=True,
+        delete_destination_tar=True,
+        create_dest=False,
+        create_dest_parents=True,
+        exclude_log_file=True,
+        change_permissions=True,
+        permissions="770",
+        exclude_all_synchro_logs=False,
+        write_transfer_done=True,
     ):
         self.start_time = datetime.now()
         self.sync_ready = False
@@ -398,7 +398,6 @@ class Synchronise:
             self._start_sync()
 
     def _start_sync(self):
-
         logging.debug("Checking for progress file")
         self._create_in_progress_file()
 
@@ -484,17 +483,17 @@ class Synchronise:
 
 
 def run_sychronisation(
-        config_file,
-        log_file,
-        change_permissions=True,
-        write_transfer_done=True,
-        exclude_all_synchro_logs=False
+    config_file,
+    log_file,
+    change_permissions=True,
+    write_transfer_done=True,
+    exclude_all_synchro_logs=False,
 ):
     synchro = Synchronise(
         config_file,
         log_file,
         change_permissions=change_permissions,
         write_transfer_done=write_transfer_done,
-        exclude_all_synchro_logs=exclude_all_synchro_logs
+        exclude_all_synchro_logs=exclude_all_synchro_logs,
     )
     synchro.start_sync()

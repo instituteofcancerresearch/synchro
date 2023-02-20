@@ -23,22 +23,22 @@ def cli_parser():
         dest="log_file",
         default=None,
         help="File to log to. Otherwise defaults to "
-             "'destination_directory/synchro.log",
+        "'destination_directory/synchro.log",
     )
     parser.add_argument(
         "--no-permission-change",
         dest="change_permissions",
         action="store_false",
         help="Don't change permissions or ownership of destination files. "
-             "Useful for debugging or if not running as root.",
+        "Useful for debugging or if not running as root.",
     )
     parser.add_argument(  # TODO: Form mutually exclusive group with log file
         "--cron",
         dest="omit_transfer_done_and_synchro_logs",
         action="store_true",
         help="Do not write transfer.done file at end of rsync process, "
-             "or copy synchro log files with pattern synchro*.log. "
-             "No need to maintain these items in e.g. cron.hourly jobs."
+        "or copy synchro log files with pattern synchro*.log. "
+        "No need to maintain these items in e.g. cron.hourly jobs.",
     )
 
     return parser
@@ -51,9 +51,11 @@ def main():
     exclude_all_synchro_logs = args.omit_transfer_done_and_synchro_logs
 
     run_sychronisation(
-        args.config_file, args.log_file, args.change_permissions,
+        args.config_file,
+        args.log_file,
+        args.change_permissions,
         write_transfer_done=write_transfer_done,
-        exclude_all_synchro_logs=exclude_all_synchro_logs
+        exclude_all_synchro_logs=exclude_all_synchro_logs,
     )
 
 
