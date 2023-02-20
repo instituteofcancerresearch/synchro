@@ -399,6 +399,7 @@ class Synchronise:
 
     def _start_sync(self):
 
+        logging.debug("Checking for progress file")
         self._create_in_progress_file()
 
         if self.options.tar:
@@ -423,11 +424,15 @@ class Synchronise:
         self.set_ownership_permissions()
 
         if self.write_transfer_done:
+            logging.debug("Writing transfer done file")
             self.write_transfer_done_file()
+        else:
+            logging.debug("Warning: Not writing transfer done file")
+
+        logging.debug("Removing in progress file")
+        self._delete_in_progress_file()
 
         self.write_log_footer()
-
-        self._delete_in_progress_file()
 
     def get_ownership(self):
         """
