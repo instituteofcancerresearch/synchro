@@ -415,20 +415,21 @@ class Synchronise:
                 self.run_destination_tar_deletion()
         else:
             logging.debug("Not untaring files")
-        logging.debug("Writing 'transfer.done' file")
+
+        if self.write_transfer_done:
+            logging.debug("Writing 'transfer.done' file")
+            self.write_transfer_done_file()
+        else:
+            logging.debug("Warning: Not writing 'transfer.done' file")
+
         if self.options.delete_source_tar:
             logging.debug("Removing source tar archive ")
             self.run_delete_source_tar()
+
         logging.debug("Setting destination ownership and permissions")
         self.set_ownership_permissions()
 
-        if self.write_transfer_done:
-            logging.debug("Writing transfer done file")
-            self.write_transfer_done_file()
-        else:
-            logging.debug("Warning: Not writing transfer done file")
-
-        logging.debug("Removing in progress file")
+        logging.debug("Removing 'transfer.ongoing' file")
         self._delete_in_progress_file()
 
         self.write_log_footer()
