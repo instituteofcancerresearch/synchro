@@ -433,34 +433,40 @@ class Synchronise:
     def _start_sync(self):
         logging.debug("Checking for progress file")
         self._create_in_progress_file()
-        self._run_rsync_dry()
-        if self.options.tar:
-            logging.debug("Starting tar archiving")
-            self.run_tar()
-        logging.debug("Starting rsync")
-        self.run_rsync()
-        logging.debug("Rsync completed")
-        if self.options.untar:
-            logging.debug("Untaring files")
-            self.run_untar()
-            if self.options.delete_destination_tar:
-                logging.debug("Removing destination tar archive")
-                self.run_destination_tar_deletion()
-        else:
-            logging.debug("Not untaring files")
 
-        if self.write_transfer_done:
-            logging.debug("Writing 'transfer.done' file")
-            self.write_transfer_done_file()
-        else:
-            logging.debug("Warning: Not writing 'transfer.done' file")
+        files_to_transfer = self._run_rsync_dry()
 
-        if self.options.delete_source_tar:
-            logging.debug("Removing source tar archive ")
-            self.run_delete_source_tar()
+        if files_to_transfer:
+            if self.options.tar:
+                logging.debug("Starting tar archiving")
+                self.run_tar()
 
-        logging.debug("Setting destination ownership and permissions")
-        self.set_ownership_permissions()
+            logging.debug("Starting rsync")
+            self.run_rsync()
+            logging.debug("Rsync completed")
+
+            if self.options.untar:
+                logging.debug("Untaring files")
+                self.run_untar()
+
+                if self.options.delete_destination_tar:
+                    logging.debug("Removing destination tar archive")
+                    self.run_destination_tar_deletion()
+            else:
+                logging.debug("Not untaring files")
+
+            if self.write_transfer_done:
+                logging.debug("Writing 'transfer.done' file")
+                self.write_transfer_done_file()
+            else:
+                logging.debug("Warning: Not writing 'transfer.done' file")
+
+            if self.options.delete_source_tar:
+                logging.debug("Removing source tar archive ")
+                self.run_delete_source_tar()
+
+            logging.debug("Setting destination ownership and permissions")
+            self.set_ownership_permissions()
 
         logging.debug("Removing 'transfer.ongoing' file")
         self._delete_in_progress_file()
@@ -497,6 +503,7 @@ class Synchronise:
                 "" if perform_transfer else "no "
             )
         )
+        return perform_transfer
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
