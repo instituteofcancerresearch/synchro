@@ -73,6 +73,7 @@ class Synchronise:
         self.untar_string = None
         self.delete_destination_tarball_string = None
         self.rsync_string = None
+        self.rsync_dry_string = None
         self.change_ownership_string = []
         self.change_permission_string = []
 
@@ -356,6 +357,15 @@ class Synchronise:
             str(self.paths.destination_directory),
         ]
 
+        self.rsync_dry_string = [
+            "rsync",
+            "-ai",
+            *exclusion_string,
+            files_to_sync,
+            str(self.paths.destination_directory),
+            "--dry-run",
+        ]
+
     def prep_untar_string(self):
         """
         Create untar command, including '-C' flag to move to directory before
@@ -470,6 +480,9 @@ class Synchronise:
 
     def run_destination_tar_deletion(self):
         execute_and_log(self.delete_destination_tarball_string)
+
+    def _run_rsync_dry(self):
+        pass
 
     def run_rsync(self):
         execute_and_log(self.rsync_string, return_string_output=True)
