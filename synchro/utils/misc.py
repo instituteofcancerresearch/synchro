@@ -42,9 +42,7 @@ def execute_and_yield_output(cmd):
         raise subprocess.CalledProcessError(return_code, cmd)
 
 
-def execute_and_log(
-    cmd, rstrip=True, skip_empty=True, return_string_output=False
-):
+def execute_and_log(cmd, rstrip=True, skip_empty=True):
     """
     Execute a terminal command, and log the output using the standard
     logging library
@@ -55,11 +53,7 @@ def execute_and_log(
     :param return_string_output: Returns output yielded from execution if True
     """
 
-    string_output = ""
-
     for string in execute_and_yield_output(cmd):
-        if return_string_output:
-            string_output += string
         if rstrip:
             string = string.rstrip("\n")
         if skip_empty:
@@ -67,9 +61,6 @@ def execute_and_log(
                 logging.debug(string)
         else:
             logging.debug(string)
-
-    if return_string_output:
-        return string_output
 
 
 def split_pathlib(path, separator=":"):
