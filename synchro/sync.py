@@ -472,7 +472,7 @@ class Synchronise:
         execute_and_log(self.delete_destination_tarball_string)
 
     def run_rsync(self):
-        execute_and_log(self.rsync_string)
+        execute_and_log(self.rsync_string, return_string_output=True)
 
     def run_untar(self):
         execute_and_log(self.untar_string)
