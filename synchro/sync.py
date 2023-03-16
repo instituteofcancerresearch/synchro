@@ -485,7 +485,7 @@ class Synchronise:
         pass
 
     def run_rsync(self):
-        execute_and_log(self.rsync_string, return_string_output=True)
+        execute_and_log(self.rsync_string)
 
     def run_untar(self):
         execute_and_log(self.untar_string)
