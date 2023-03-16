@@ -14,6 +14,7 @@ from .utils.misc import (
 from .utils import create_cmd
 from .utils.options import Options
 from .utils.paths import Paths
+from .utils.proc_rsync_out import parse_line
 
 from pathlib import Path
 
@@ -483,14 +484,19 @@ class Synchronise:
         execute_and_log(self.delete_destination_tarball_string)
 
     def _run_rsync_dry(self):
-        string_output = ""
-        logging.debug("\n\nRunning dry:")
+        logging.debug("\n---Starting dry run:")
+
+        perform_transfer = False
 
         for output in execute_and_yield_output(self.rsync_dry_string):
-            string_output += output
-
-        print(string_output)
-        logging.debug("Dry run complete.\n\n")
+            sync_required, message = parse_line(output)
+            perform_transfer = perform_transfer or sync_required
+            logging.debug(message.strip("\n"))
+        logging.debug(
+            "---Dry run complete: {}changes detected\n".format(
+                "" if perform_transfer else "no "
+            )
+        )
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
