@@ -50,7 +50,6 @@ def execute_and_log(cmd, rstrip=True, skip_empty=True):
     :param cmd: Command to run
     :param rstrip: Strip the output of trailing new line
     :param skip_empty: Don't log empty lines
-    :param return_string_output: Returns output yielded from execution if True
     """
 
     for string in execute_and_yield_output(cmd):
