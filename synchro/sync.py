@@ -37,7 +37,7 @@ class Synchronise:
         log_level="DEBUG",
         tar_flags=["-cvlpf"],
         untar_flags=["-xvpf"],
-        rsync_flags=["-aP"],
+        rsync_flags=["-ai"],
         tar=True,
         untar=True,
         delete_source_tar=True,
@@ -298,6 +298,7 @@ class Synchronise:
         if self.exclude_all_synchro_logs:
             self.tar_string = [
                 "tar",
+                f"--exclude={self.paths.log_filename.name}",
                 "--exclude=synchro*.log",
                 "--exclude=transfer.ongoing",
             ]
@@ -308,7 +309,10 @@ class Synchronise:
                 "--exclude=transfer.ongoing",
             ]
         else:
-            self.tar_string = ["tar"]
+            self.tar_string = [
+                "tar",
+                "--exclude=transfer.ongoing",
+            ]
 
         cmd = [
             *self.tar_flags,
@@ -328,9 +332,26 @@ class Synchronise:
         else:
             files_to_sync = self.files_to_sync
 
+        exclusion_string = [
+            f"{self.paths.log_filename}",
+            f"{self.paths.transfer_in_prog_file}",
+        ]
+        exclusion_string = [
+            os.path.split(es)[1] for es in exclusion_string
+        ] + ["synchro*.log"]
+        exclusion_string = ["--exclude=" + es for es in exclusion_string]
+
+        if self.exclude_all_synchro_logs:
+            pass
+        elif self.exclude_log_file:
+            exclusion_string = exclusion_string[:-1]
+        else:
+            exclusion_string = exclusion_string[1]
+
         self.rsync_string = [
             "rsync",
             *self.rsync_flags,
+            *exclusion_string,
             files_to_sync,
             str(self.paths.destination_directory),
         ]
