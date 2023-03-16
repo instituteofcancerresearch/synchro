@@ -38,7 +38,7 @@ class Synchronise:
         log_level="DEBUG",
         tar_flags=["-cvlpf"],
         untar_flags=["-xvpf"],
-        rsync_flags=["-ai"],
+        rsync_flags=["-aP"],
         tar=True,
         untar=True,
         delete_source_tar=True,
@@ -362,9 +362,9 @@ class Synchronise:
             "rsync",
             "-ai",
             *exclusion_string,
-            files_to_sync,
-            str(self.paths.destination_directory),
             "--dry-run",
+            str(self.paths.source_directory) + "/",
+            str(self.paths.destination_directory),
         ]
 
     def prep_untar_string(self):
@@ -432,7 +432,7 @@ class Synchronise:
     def _start_sync(self):
         logging.debug("Checking for progress file")
         self._create_in_progress_file()
-
+        self._run_rsync_dry()
         if self.options.tar:
             logging.debug("Starting tar archiving")
             self.run_tar()
@@ -484,15 +484,15 @@ class Synchronise:
 
     def _run_rsync_dry(self):
         string_output = ""
+        logging.debug("\n\nRunning dry:")
 
-        for output in execute_and_yield_output(self.rsync_string):
+        for output in execute_and_yield_output(self.rsync_dry_string):
             string_output += output
 
-        if string_output:
-            pass  # TODO: Implement processing
+        print(string_output)
+        logging.debug("Dry run complete.\n\n")
 
     def run_rsync(self):
-        self._run_rsync_dry()
         execute_and_log(self.rsync_string)
 
     def run_untar(self):
