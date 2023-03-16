@@ -6,6 +6,7 @@ from datetime import datetime
 from .utils.logging import initalise_logger, write_log_header, write_log_footer
 from .utils.misc import (
     get_config_obj,
+    execute_and_yield_output,
     execute_and_log,
     check_remote_dir_exists,
 )
@@ -482,9 +483,16 @@ class Synchronise:
         execute_and_log(self.delete_destination_tarball_string)
 
     def _run_rsync_dry(self):
-        pass
+        string_output = ""
+
+        for output in execute_and_yield_output(self.rsync_string):
+            string_output += output
+
+        if string_output:
+            pass  # TODO: Implement processing
 
     def run_rsync(self):
+        self._run_rsync_dry()
         execute_and_log(self.rsync_string)
 
     def run_untar(self):
