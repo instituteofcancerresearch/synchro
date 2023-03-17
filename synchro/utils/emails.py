@@ -1,15 +1,15 @@
 class Email:
-    def __init__(self, subject=None, recipient=None, attachment=None, _force_empty=False):
+    def __init__(self, subject=None, recipient=None, message_body_file=None, _force_empty=False):
         self.subject = subject
         self.recipient = recipient
-        self.attachment = attachment
-        self.cmd = []
+        self.message_body_file = message_body_file
+        self.cmd = None
 
         if not _force_empty:
             self.prep_command()
 
     def prep_command(self):
-        if self.attachment is None:
+        if self.message_body_file is None:
             self.cmd = self._attachment_free()
         else:
             self.cmd = self._include_attachment()
@@ -19,14 +19,12 @@ class Email:
 
     def _include_attachment(self):
         return [
-            "uuencode",
-            "file",
-            self.attachment,
-            "|",
             "mailx",
             "-s",
             self.subject,
             self.recipient,
+            "<",
+            self.message_body_file
         ]
 
     def get_command(self):
