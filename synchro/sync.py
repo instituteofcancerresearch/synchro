@@ -6,6 +6,7 @@ from datetime import datetime
 from .utils.logging import initalise_logger, write_log_header, write_log_footer
 from .utils.misc import (
     get_config_obj,
+    execute_and_yield_output,
     execute_and_log,
     check_remote_dir_exists,
 )
@@ -13,6 +14,7 @@ from .utils.misc import (
 from .utils import create_cmd
 from .utils.options import Options
 from .utils.paths import Paths
+from .utils.proc_rsync_out import parse_line
 
 from pathlib import Path
 
@@ -73,6 +75,7 @@ class Synchronise:
         self.untar_string = None
         self.delete_destination_tarball_string = None
         self.rsync_string = None
+        self.rsync_dry_string = None
         self.change_ownership_string = []
         self.change_permission_string = []
 
@@ -298,6 +301,7 @@ class Synchronise:
         if self.exclude_all_synchro_logs:
             self.tar_string = [
                 "tar",
+                f"--exclude={self.paths.log_filename.name}",
                 "--exclude=synchro*.log",
                 "--exclude=transfer.ongoing",
             ]
@@ -308,7 +312,10 @@ class Synchronise:
                 "--exclude=transfer.ongoing",
             ]
         else:
-            self.tar_string = ["tar"]
+            self.tar_string = [
+                "tar",
+                "--exclude=transfer.ongoing",
+            ]
 
         cmd = [
             *self.tar_flags,
@@ -328,10 +335,36 @@ class Synchronise:
         else:
             files_to_sync = self.files_to_sync
 
+        exclusion_string = [
+            f"{self.paths.log_filename}",
+            f"{self.paths.transfer_in_prog_file}",
+        ]
+        exclusion_string = [
+            os.path.split(es)[1] for es in exclusion_string
+        ] + ["synchro*.log"]
+        exclusion_string = ["--exclude=" + es for es in exclusion_string]
+
+        if self.exclude_all_synchro_logs:
+            pass
+        elif self.exclude_log_file:
+            exclusion_string = exclusion_string[:-1]
+        else:
+            exclusion_string = exclusion_string[1]
+
         self.rsync_string = [
             "rsync",
             *self.rsync_flags,
+            *exclusion_string,
             files_to_sync,
+            str(self.paths.destination_directory),
+        ]
+
+        self.rsync_dry_string = [
+            "rsync",
+            "-ai",
+            *exclusion_string,
+            "--dry-run",
+            str(self.paths.source_directory) + "/",
             str(self.paths.destination_directory),
         ]
 
@@ -401,33 +434,39 @@ class Synchronise:
         logging.debug("Checking for progress file")
         self._create_in_progress_file()
 
-        if self.options.tar:
-            logging.debug("Starting tar archiving")
-            self.run_tar()
-        logging.debug("Starting rsync")
-        self.run_rsync()
-        logging.debug("Rsync completed")
-        if self.options.untar:
-            logging.debug("Untaring files")
-            self.run_untar()
-            if self.options.delete_destination_tar:
-                logging.debug("Removing destination tar archive")
-                self.run_destination_tar_deletion()
-        else:
-            logging.debug("Not untaring files")
+        files_to_transfer = self._run_rsync_dry()
 
-        if self.write_transfer_done:
-            logging.debug("Writing 'transfer.done' file")
-            self.write_transfer_done_file()
-        else:
-            logging.debug("Warning: Not writing 'transfer.done' file")
+        if files_to_transfer:
+            if self.options.tar:
+                logging.debug("Starting tar archiving")
+                self.run_tar()
 
-        if self.options.delete_source_tar:
-            logging.debug("Removing source tar archive ")
-            self.run_delete_source_tar()
+            logging.debug("Starting rsync")
+            self.run_rsync()
+            logging.debug("Rsync completed")
 
-        logging.debug("Setting destination ownership and permissions")
-        self.set_ownership_permissions()
+            if self.options.untar:
+                logging.debug("Untaring files")
+                self.run_untar()
+
+                if self.options.delete_destination_tar:
+                    logging.debug("Removing destination tar archive")
+                    self.run_destination_tar_deletion()
+            else:
+                logging.debug("Not untaring files")
+
+            if self.write_transfer_done:
+                logging.debug("Writing 'transfer.done' file")
+                self.write_transfer_done_file()
+            else:
+                logging.debug("Warning: Not writing 'transfer.done' file")
+
+            if self.options.delete_source_tar:
+                logging.debug("Removing source tar archive ")
+                self.run_delete_source_tar()
+
+            logging.debug("Setting destination ownership and permissions")
+            self.set_ownership_permissions()
 
         logging.debug("Removing 'transfer.ongoing' file")
         self._delete_in_progress_file()
@@ -449,6 +488,22 @@ class Synchronise:
 
     def run_destination_tar_deletion(self):
         execute_and_log(self.delete_destination_tarball_string)
+
+    def _run_rsync_dry(self):
+        logging.debug("\n---Starting dry run:")
+
+        perform_transfer = False
+
+        for output in execute_and_yield_output(self.rsync_dry_string):
+            sync_required, message = parse_line(output)
+            perform_transfer = perform_transfer or sync_required
+            logging.debug(message.strip("\n"))
+        logging.debug(
+            "---Dry run complete: {}changes detected\n".format(
+                "" if perform_transfer else "no "
+            )
+        )
+        return perform_transfer
 
     def run_rsync(self):
         execute_and_log(self.rsync_string)
