@@ -56,6 +56,17 @@ def set_tar_options(
     return run_tar, run_untar, delete_source_tar
 
 
+def set_email_options(config, email_on_start=False, email_on_end=False):
+    email_on_start = try_set_boolean_with_default(
+        config, email_on_start, "email_on_start"
+    )
+    email_on_end = try_set_boolean_with_default(
+        config, email_on_end, "email_on_end"
+    )
+
+    return email_on_start, email_on_end
+
+
 def set_delete_destination_tar(delete_destination_tar, tar, untar):
     if tar:
         if delete_destination_tar and not untar:
