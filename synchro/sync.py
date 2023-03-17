@@ -19,6 +19,8 @@ from .utils.emails import Email
 
 from pathlib import Path
 
+import subprocess
+
 
 class ConfigFileError(Exception):
     pass
@@ -151,7 +153,7 @@ class Synchronise:
             else:
                 print(
                     f"Transfer ready file: {self.paths.transfer_ready_file} "
-                    f"does not exist."
+                    f"does not exist"
                 )
         else:
             self.sync_ready = True
@@ -162,7 +164,7 @@ class Synchronise:
 
     def _prep_email_on_start(self):
         if self.options.email_on_start:
-            subject = f"synchro-transfer-start-{self.start_time}"
+            subject = f"'synchro-transfer-start-{self.start_time}'"
             recipient = self.options.email_address
             self.email_on_start_cmd = Email(
                 subject=subject, recipient=recipient
@@ -172,13 +174,13 @@ class Synchronise:
 
     def _prep_email_on_end(self):
         if self.options.email_on_end:
-            subject = f"synchro-complete-{self.start_time}"
+            subject = f"'synchro-complete-{self.start_time}'"
             recipient = self.options.email_address
-            attachment = self.paths.email_file
+            message_body_file = self.paths.email_file
             self.email_on_end_cmd = Email(
                 subject=subject,
                 recipient=recipient,
-                message_body_file=attachment,
+                message_body_file=message_body_file,
             ).cmd
         else:
             self.email_on_end_cmd = Email.null().cmd
@@ -190,9 +192,8 @@ class Synchronise:
             with open(self.paths.log_filename, "r") as g:
                 line = g.readline()
 
-                while not line.startswith(
-                    "---Starting dry run:"
-                ):  # TODO: fix start/end of email component
+                # TODO: fix start/end of email component
+                while not line.startswith("---Starting dry run:"):
                     line = g.readline()
 
                 while not line.startswith("---Dry run complete:"):
@@ -208,16 +209,24 @@ class Synchronise:
                 f"{self.options.email_address}"
             )
             execute_and_log(self.email_on_start_cmd)
+            logging.debug("Email sent")
 
     def send_email_end(self):
         if self.email_on_end_cmd is not None:
+            logging.debug("Writing email file")
+            self.write_email_file()
             logging.debug(
                 f"Sending end of transfer email to "
                 f"{self.options.email_address}"
             )
-            self.write_email_file()
-            execute_and_log(self.email_on_end_cmd)
+            ps = subprocess.Popen(
+                self.email_on_end_cmd[0], stdout=subprocess.PIPE
+            )
+            subprocess.check_output(self.email_on_end_cmd[1], stdin=ps.stdout)
+            ps.wait()
+            logging.debug("Email sent")
             os.remove(self.paths.email_file)
+            logging.debug("Email file removed")
 
     def prep_sync(self):
         self.check_inputs()
