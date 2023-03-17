@@ -14,6 +14,9 @@ class Options:
         delete_destination_tar,
         owner=None,
         group=None,
+        email_address=None,
+        email_on_start=False,
+        email_on_end=False,
     ):
         self.create_dest = try_set_boolean_with_default(
             config, create_dest, "create_dest"
@@ -29,6 +32,13 @@ class Options:
         self.permissions = set_permissions(config, permissions)
         self.delete_destination_tar = set_delete_destination_tar(
             delete_destination_tar, self.tar, self.untar
+        )
+        (
+            self.email_address,
+            self.email_on_start,
+            self.email_on_end,
+        ) = set_email_options(
+            config, email_address, email_on_start, email_on_end
         )
 
 
@@ -56,7 +66,11 @@ def set_tar_options(
     return run_tar, run_untar, delete_source_tar
 
 
-def set_email_options(config, email_on_start=False, email_on_end=False):
+def set_email_options(
+    config, email_address=None, email_on_start=False, email_on_end=False
+):
+    email_address = try_set_parameter(config, email_address, "email_address")
+
     email_on_start = try_set_boolean_with_default(
         config, email_on_start, "email_on_start"
     )
@@ -64,7 +78,7 @@ def set_email_options(config, email_on_start=False, email_on_end=False):
         config, email_on_end, "email_on_end"
     )
 
-    return email_on_start, email_on_end
+    return email_address, email_on_start, email_on_end
 
 
 def set_delete_destination_tar(delete_destination_tar, tar, untar):
