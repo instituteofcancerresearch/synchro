@@ -151,6 +151,16 @@ class Synchronise:
         else:
             self.sync_ready = True
 
+    def prep_email(self):
+        self._prep_email_on_start()
+        self._prep_email_on_end()
+
+    def _prep_email_on_start(self):
+        pass
+
+    def _prep_email_on_end(self):
+        pass
+
     def prep_sync(self):
         self.check_inputs()
 
