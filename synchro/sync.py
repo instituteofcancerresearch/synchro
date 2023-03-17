@@ -103,6 +103,10 @@ class Synchronise:
             self.setup_logging()
             self.write_log_header()
 
+        self.email_on_start_cmd = None
+        self.email_on_end_cmd = None
+        self.prep_email()
+
     def check_sync_ready(self):
         """
         Ensure the files are in place before starting sync
@@ -160,36 +164,60 @@ class Synchronise:
         if self.options.email_on_start:
             subject = f"synchro-transfer-start-{self.start_time}"
             recipient = self.options.email_address
-            self.email_on_start_cmd = Email(subject=subject, recipient=recipient)
+            self.email_on_start_cmd = Email(
+                subject=subject, recipient=recipient
+            ).cmd
         else:
-            self.email_on_start_cmd = Email.null()
+            self.email_on_start_cmd = Email.null().cmd
 
     def _prep_email_on_end(self):
-        if self.options.email_on_start:
+        if self.options.email_on_end:
             subject = f"synchro-complete-{self.start_time}"
             recipient = self.options.email_address
             attachment = self.paths.email_file
-            self.email_on_end_cmd = Email(subject=subject, recipient=recipient, attachment=attachment)
+            self.email_on_end_cmd = Email(
+                subject=subject,
+                recipient=recipient,
+                message_body_file=attachment,
+            ).cmd
         else:
-            self.email_on_end_cmd = Email.null()
+            self.email_on_end_cmd = Email.null().cmd
 
     def write_email_file(self):
-
         with open(self.paths.email_file, "w") as f:
-
             f.write("-- Transfer summary:\n\n")
 
             with open(self.paths.log_filename, "r") as g:
-
                 line = g.readline()
 
-                while not line.startswith("---Starting dry run:"):
+                while not line.startswith(
+                    "---Starting dry run:"
+                ):  # TODO: fix start/end of email component
                     line = g.readline()
 
                 while not line.startswith("---Dry run complete:"):
                     line = g.readline()
-                    f.write(line)
 
+                    if not line.startswith("---Dry run complete:"):
+                        f.write(line)
+
+    def send_email_start(self):
+        if self.email_on_start_cmd is not None:
+            logging.debug(
+                f"Sending start of transfer email to "
+                f"{self.options.email_address}"
+            )
+            execute_and_log(self.email_on_start_cmd)
+
+    def send_email_end(self):
+        if self.email_on_end_cmd is not None:
+            logging.debug(
+                f"Sending end of transfer email to "
+                f"{self.options.email_address}"
+            )
+            self.write_email_file()
+            execute_and_log(self.email_on_end_cmd)
+            os.remove(self.paths.email_file)
 
     def prep_sync(self):
         self.check_inputs()
@@ -479,6 +507,8 @@ class Synchronise:
         files_to_transfer = self._run_rsync_dry()
 
         if files_to_transfer:
+            self.send_email_start()
+
             if self.options.tar:
                 logging.debug("Starting tar archiving")
                 self.run_tar()
@@ -509,6 +539,8 @@ class Synchronise:
 
             logging.debug("Setting destination ownership and permissions")
             self.set_ownership_permissions()
+
+            self.send_email_end()
 
         logging.debug("Removing 'transfer.ongoing' file")
         self._delete_in_progress_file()
