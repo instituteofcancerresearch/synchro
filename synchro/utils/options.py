@@ -72,10 +72,10 @@ def set_email_options(
     email_address = try_set_parameter(config, email_address, "email_address")
 
     email_on_start = try_set_boolean_with_default(
-        config, email_on_start, "email_on_start"
+        config, email_on_start, "email_on_start", log_warning=False
     )
     email_on_end = try_set_boolean_with_default(
-        config, email_on_end, "email_on_end"
+        config, email_on_end, "email_on_end", log_warning=False
     )
 
     return email_address, email_on_start, email_on_end
@@ -105,7 +105,11 @@ def try_set_parameter(
 
 
 def try_set_boolean_with_default(
-    config, parameter, parameter_config_entry, config_string="config"
+    config,
+    parameter,
+    parameter_config_entry,
+    config_string="config",
+    log_warning=True,
 ):
     try:
         parameter = (
@@ -114,8 +118,9 @@ def try_set_boolean_with_default(
             else False
         )
     except configparser.NoOptionError:
-        logging.warning(
-            f"{parameter_config_entry} option not set in config file. "
-            f"Setting to: {parameter}"
-        )
+        if log_warning:
+            logging.warning(
+                f"{parameter_config_entry} option not set in config file. "
+                f"Setting to: {parameter}"
+            )
     return parameter
