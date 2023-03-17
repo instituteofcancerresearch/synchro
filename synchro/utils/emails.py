@@ -1,5 +1,11 @@
 class Email:
-    def __init__(self, subject=None, recipient=None, message_body_file=None, _force_empty=False):
+    def __init__(
+        self,
+        subject=None,
+        recipient=None,
+        message_body_file=None,
+        _force_empty=False,
+    ):
         self.subject = subject
         self.recipient = recipient
         self.message_body_file = message_body_file
@@ -15,16 +21,21 @@ class Email:
             self.cmd = self._include_attachment()
 
     def _attachment_free(self):
-        return ["mailx", "-s", self.subject, self.recipient]
-
-    def _include_attachment(self):
         return [
+            "echo",
+            "|",
             "mailx",
             "-s",
-            self.subject,
+            self.subject.replace(" ", "-"),
             self.recipient,
-            "<",
-            self.message_body_file
+        ]
+
+    def _include_attachment(self):
+        return ["cat", self.message_body_file.as_posix()], [
+            "mailx",
+            "-s",
+            self.subject.replace(" ", "-"),
+            self.recipient,
         ]
 
     def get_command(self):
