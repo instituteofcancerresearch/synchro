@@ -15,6 +15,7 @@ from .utils import create_cmd
 from .utils.options import Options
 from .utils.paths import Paths
 from .utils.proc_rsync_out import parse_line
+from .utils.emails import Email
 
 from pathlib import Path
 
@@ -156,10 +157,21 @@ class Synchronise:
         self._prep_email_on_end()
 
     def _prep_email_on_start(self):
-        pass
+        if self.options.email_on_start:
+            subject = f"synchro-transfer-start-{self.start_time}"
+            recipient = self.options.email_address
+            self.email_on_start_cmd = Email(subject=subject, recipient=recipient)
+        else:
+            self.email_on_start_cmd = Email.null()
 
     def _prep_email_on_end(self):
-        pass
+        if self.options.email_on_start:
+            subject = f"synchro-complete-{self.start_time}"
+            recipient = self.options.email_address
+            attachment = self.paths.email_file
+            self.email_on_end_cmd = Email(subject=subject, recipient=recipient, attachment=attachment)
+        else:
+            self.email_on_end_cmd = Email.null()
 
     def prep_sync(self):
         self.check_inputs()
