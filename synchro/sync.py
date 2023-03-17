@@ -173,6 +173,24 @@ class Synchronise:
         else:
             self.email_on_end_cmd = Email.null()
 
+    def write_email_file(self):
+
+        with open(self.paths.email_file, "w") as f:
+
+            f.write("-- Transfer summary:\n\n")
+
+            with open(self.paths.log_filename, "r") as g:
+
+                line = g.readline()
+
+                while not line.startswith("---Starting dry run:"):
+                    line = g.readline()
+
+                while not line.startswith("---Dry run complete:"):
+                    line = g.readline()
+                    f.write(line)
+
+
     def prep_sync(self):
         self.check_inputs()
 
