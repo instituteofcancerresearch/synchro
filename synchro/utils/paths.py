@@ -29,6 +29,7 @@ class Paths:
         self.dest_tar_archive = self.local_destination / self.tar_archive.name
         self.transfer_done_file = self.source_directory / "transfer.done"
         self.transfer_in_prog_file = self.source_directory / "transfer.ongoing"
+        self.email_file = self.source_directory / "transfer_email_file.txt"
 
     @staticmethod
     def set_source_directory(config):
