@@ -54,7 +54,6 @@ class Synchronise:
         permissions="770",
         exclude_all_synchro_logs=False,
         write_transfer_done=True,
-        send_transfer_notifications=False,
     ):
         self.start_time = datetime.now()
         self.sync_ready = False
@@ -65,7 +64,6 @@ class Synchronise:
         self.flags = untar_flags
         self.exclude_all_synchro_logs = exclude_all_synchro_logs
         self.write_transfer_done = write_transfer_done
-        self.send_transfer_notifications = send_transfer_notifications
 
         self.config = []
         self.rsync_destination_directory = []
