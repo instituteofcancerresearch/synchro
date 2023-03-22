@@ -25,7 +25,9 @@ class Paths:
         )
 
         self.log_filename = self.set_log_filename(
-            log_filename, self.source_directory
+            log_filename,
+            self.source_directory,
+            persistent_log=self.persistent_log,
         )
 
         self.tar_archive = self.source_directory.parent / (
