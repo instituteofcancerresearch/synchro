@@ -382,14 +382,14 @@ class Synchronise:
         if self.exclude_all_synchro_logs:
             self.tar_string = [
                 "tar",
-                f"--exclude={self.paths.log_filename.name}",
+                f"--exclude={self.paths.log_filename}",
                 "--exclude=synchro*.log",
                 "--exclude=transfer.ongoing",
             ]
         elif self.exclude_log_file:
             self.tar_string = [
                 "tar",
-                f"--exclude={self.paths.log_filename.name}",
+                f"--exclude={self.paths.log_filename}",
                 "--exclude=transfer.ongoing",
             ]
         else:
