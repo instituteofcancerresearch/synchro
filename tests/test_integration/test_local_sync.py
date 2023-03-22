@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from synchro.cli import main as synchro_run
@@ -22,7 +23,7 @@ def test_local_sync_4_files(tmpdir):
     # num files + dirs + 1 for conf file
     assert (
         len(list(dest_dir.iterdir())) == len(TEST_DIRS) + len(TEST_FILES) + 1
-    )
+    ), os.listdir(dest_dir)
 
 
 def test_local_sync_no_untar(tmpdir):
@@ -40,7 +41,7 @@ def test_local_sync_no_tar(tmpdir):
     # num files + dirs + 1 for conf file
     assert (
         len(list(dest_dir.iterdir())) == len(TEST_DIRS) + len(TEST_FILES) + 1
-    )
+    ), os.listdir(dest_dir)
 
 
 def test_local_sync_5_files(tmpdir, ready_file="ready.txt"):
@@ -51,7 +52,7 @@ def test_local_sync_5_files(tmpdir, ready_file="ready.txt"):
     assert (
         len(list(dest_dir.iterdir()))
         == len(TEST_DIRS) + len(TEST_FILES) + 1 + 1
-    )
+    ), os.listdir(dest_dir)
 
 
 def test_conditional_local_sync(tmpdir, ready_file="ready.txt"):
@@ -64,7 +65,7 @@ def test_conditional_local_sync(tmpdir, ready_file="ready.txt"):
     assert (
         len(list(dest_dir.iterdir()))
         == len(TEST_DIRS) + len(TEST_FILES) + 1 + 1
-    )
+    ), os.listdir(dest_dir)
 
 
 def test_conditional_local_sync_no_ready_file(tmpdir, ready_file="ready.txt"):
@@ -116,7 +117,7 @@ def test_not_done_file_with_cron(tmpdir):
     # Check that only
     assert (
         len(list(dest_dir.iterdir())) == len(TEST_FILES) + len(TEST_DIRS) + 1
-    )
+    ), os.listdir(dest_dir)
 
     # Rerun synchro in cron mode
     sys.argv = ["synchro", str(config_file), "--cron"]
@@ -126,7 +127,7 @@ def test_not_done_file_with_cron(tmpdir):
 
     assert (
         len(list(dest_dir.iterdir())) == len(TEST_FILES) + len(TEST_DIRS) + 1
-    )
+    ), os.listdir(dest_dir)
 
     # create new file
     (src_dir / "new_file.txt").touch()
@@ -138,7 +139,7 @@ def test_not_done_file_with_cron(tmpdir):
 
     assert (
         len(list(dest_dir.iterdir())) == len(TEST_FILES) + len(TEST_DIRS) + 2
-    )
+    ), os.listdir(dest_dir)
 
 
 def remove_path(path: Path):
