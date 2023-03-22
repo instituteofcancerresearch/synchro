@@ -9,23 +9,29 @@ from synchro.utils.misc import (
 
 
 class Paths:
-    def __init__(self, config, log_filename):
+    def __init__(self, config, log_filename, persistent_log=False):
         self.source_directory = self.set_source_directory(config)
         self.destination_directory = self.set_destination_directory(config)
+        self.persistent_log = persistent_log
+
         (
             self.local_destination,
             self.remote_host,
             self.remote_destination,
         ) = self.check_remote_dest(self.destination_directory)
+
         self.transfer_ready_file = self.set_transfer_initiation(
             config, self.source_directory
         )
+
         self.log_filename = self.set_log_filename(
             log_filename, self.source_directory
         )
+
         self.tar_archive = self.source_directory.parent / (
             self.source_directory.name + ".tar"
         )
+
         self.dest_tar_archive = self.local_destination / self.tar_archive.name
         self.transfer_done_file = self.source_directory / "transfer.done"
         self.transfer_in_prog_file = self.source_directory / "transfer.ongoing"
@@ -68,15 +74,22 @@ class Paths:
         return local_destination, remote_host, remote_destination
 
     @staticmethod
-    def set_log_filename(log_filename, source_directory):
+    def set_log_filename(log_filename, source_directory, persistent_log=False):
         """
-        If no log filename is provided, create one based on the date/time
+        If no log filename is provided, create one based on the date/time.
+        Note: persistent log takes president if avail
         """
-        if log_filename is None:
+
+        if persistent_log:
+            log_filename = source_directory / "synchro_persistent.log"
+        elif log_filename is None:
             log_filename = source_directory / (
                 datetime.now().strftime("synchro" + "_%Y-%m-%d_%H-%M-%S")
                 + ".log"
             )
+        else:
+            pass
+
         return log_filename
 
     @staticmethod

@@ -87,7 +87,9 @@ class Synchronise:
         self.files_to_sync = []
 
         self.read_config()
-        self.paths = Paths(self.config, log_filename)
+        self.paths = Paths(
+            self.config, log_filename, persistent_log=persistent_log
+        )
         self.check_source_directory()
         self.options = Options(
             self.config,
