@@ -47,21 +47,3 @@ def parse_line(line):
     # TODO: Formulate better methods from user end to make these decisions.
     #  Currently just ignores . bits
     return False if update_bit == "." else True, output_message
-
-
-if __name__ == "__main__":
-    test_data = [
-        ".d..tp..... ./",
-        ".f...p..... changes.py",
-        ".f...p..... content",
-        ".f...p..... run.sh",
-        ".d...p..... new_dir/",
-        ".f...p..... new_dir/something.py",
-        ".d...p..... some_dir/",
-        ".f...p..... some_dir/mega_file",
-        ".f...p..... some_dir/test_file.txt",
-    ]
-
-    for dat in test_data:
-        value, msg = parse_line(dat)
-        print(msg)
