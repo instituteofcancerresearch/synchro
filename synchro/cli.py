@@ -40,6 +40,13 @@ def cli_parser():
         "or copy synchro log files with pattern synchro*.log. "
         "No need to maintain these items in e.g. cron.hourly jobs.",
     )
+    parser.add_argument(
+        "--persistent_log",
+        dest="pers_log",
+        action="store_true",
+        help="If true, the log file will be appended too periodically"
+        "in cron mode. Otherwise this will have no effect.",
+    )
 
     return parser
 
