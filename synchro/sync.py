@@ -54,6 +54,7 @@ class Synchronise:
         permissions="770",
         exclude_all_synchro_logs=False,
         write_transfer_done=True,
+        persistent_log=False,
     ):
         self.start_time = datetime.now()
         self.sync_ready = False
@@ -64,6 +65,7 @@ class Synchronise:
         self.flags = untar_flags
         self.exclude_all_synchro_logs = exclude_all_synchro_logs
         self.write_transfer_done = write_transfer_done
+        self.persistent_log = persistent_log
 
         self.config = []
         self.rsync_destination_directory = []
@@ -625,6 +627,7 @@ def run_sychronisation(
     change_permissions=True,
     write_transfer_done=True,
     exclude_all_synchro_logs=False,
+    persistent_log=False,
 ):
     synchro = Synchronise(
         config_file,
@@ -632,5 +635,6 @@ def run_sychronisation(
         change_permissions=change_permissions,
         write_transfer_done=write_transfer_done,
         exclude_all_synchro_logs=exclude_all_synchro_logs,
+        persistent_log=persistent_log,
     )
     synchro.start_sync()

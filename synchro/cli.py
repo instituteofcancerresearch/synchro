@@ -63,6 +63,7 @@ def main():
         args.change_permissions,
         write_transfer_done=write_transfer_done,
         exclude_all_synchro_logs=exclude_all_synchro_logs,
+        persistent_log=args.pers_log,
     )
 
 
