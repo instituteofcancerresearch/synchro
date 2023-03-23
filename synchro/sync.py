@@ -205,7 +205,7 @@ class Synchronise:
                     if not line.startswith("---Dry run complete:"):
                         f.write(line + "\n")
 
-            f.write("\nContact schelpdesk@icr.ac.uk for any issues.")
+            f.write("\nContact schelpdesk@icr.ac.uk for any issues.\n")
             f.write("</div>")
 
     def send_email_start(self):
