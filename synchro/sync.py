@@ -212,7 +212,14 @@ class Synchronise:
                 f"Sending start of transfer email to "
                 f"{self.options.email_address}"
             )
-            execute_and_log(self.email_on_start_cmd)
+            ps = subprocess.Popen(
+                self.email_on_start_cmd[0], stdout=subprocess.PIPE
+            )
+            subprocess.check_output(
+                self.email_on_start_cmd[1], stdin=ps.stdout
+            )
+            ps.wait()
+            # execute_and_log(self.email_on_start_cmd)
             logging.debug("Email sent")
 
     def send_email_end(self):
