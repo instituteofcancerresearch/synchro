@@ -48,7 +48,9 @@ def test_local_sync_5_files(tmpdir, ready_file="ready.txt"):
     # Create a ready file, but do not require it
     _, dest_dir, _ = prep_and_run_sync(tmpdir, create_ready_file=ready_file)
 
-    # num files + dirs + 1 for conf + 1 for ready file
+    # num files + dirs + 1 for conf + 1 for ready file.
+    # Since not defined as "ready file" this is picked up in the transfer
+    # as a general file
     assert (
         len(list(dest_dir.iterdir()))
         == len(TEST_DIRS) + len(TEST_FILES) + 1 + 1
@@ -61,10 +63,11 @@ def test_conditional_local_sync(tmpdir, ready_file="ready.txt"):
         tmpdir, create_ready_file=ready_file, check_ready_file=ready_file
     )
 
-    # num files + dirs + 1 for conf + 1 for ready file
+    # num files + dirs + 1 for conf
+    # since this is defined as "ready file" this is omitted from
+    # the transfer by synchro
     assert (
-        len(list(dest_dir.iterdir()))
-        == len(TEST_DIRS) + len(TEST_FILES) + 1 + 1
+        len(list(dest_dir.iterdir())) == len(TEST_DIRS) + len(TEST_FILES) + 1
     ), os.listdir(dest_dir)
 
 
