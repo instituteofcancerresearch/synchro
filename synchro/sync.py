@@ -409,6 +409,11 @@ class Synchronise:
                 "--exclude=transfer.ongoing",
             ]
 
+        if self.paths.transfer_ready_file is not None:
+            self.tar_string.append(
+                f"--exclude=" f"{self.paths.transfer_ready_file.name}"
+            )
+
         cmd = [
             *self.tar_flags,
             str(self.paths.tar_archive),
@@ -431,6 +436,9 @@ class Synchronise:
             f"{self.paths.log_filename}",
             f"{self.paths.transfer_in_prog_file}",
         ]
+
+        if self.paths.transfer_ready_file is not None:
+            exclusion_string.append(f"{self.paths.transfer_ready_file}")
 
         exclusion_string = [
             os.path.split(es)[1] for es in exclusion_string
