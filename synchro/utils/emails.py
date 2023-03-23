@@ -21,9 +21,7 @@ class Email:
             self.cmd = self._include_attachment()
 
     def _attachment_free(self):
-        return [
-            "echo",
-            "|",
+        return ["echo", ""], [
             "mailx",
             "-s",
             self.subject.replace(" ", "-"),
