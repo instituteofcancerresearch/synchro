@@ -35,7 +35,9 @@ def parse_line(line):
     this just to redo the permission change upon receipt.
     """
 
-    bit_positions, filename = line.split(" ")
+    # index about central whitespace
+    bit_positions = line[:11]
+    filename = line[12:]
 
     update_bit, type_bit, *other_bits = bit_positions
 
