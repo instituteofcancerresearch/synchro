@@ -90,7 +90,7 @@ class Paths:
                 + ".log"
             )
         else:
-            pass
+            log_filename = source_directory / log_filename
 
         return log_filename
 
