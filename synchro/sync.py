@@ -202,7 +202,7 @@ class Synchronise:
                     line = g.readline()
 
                     if not line.startswith("---Dry run complete:"):
-                        f.write(line)
+                        f.write(line + "\n")
 
     def send_email_start(self):
         if self.email_on_start_cmd is not None:
