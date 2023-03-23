@@ -42,7 +42,7 @@ def write_log_header(
     tar_string: Optional[str] = None,
     untar_string: Optional[str] = None,
     delete_dest_tarball_string: Optional[str] = None,
-):
+):  # TODO: update header for email pars & cron mode
     """
     Write a standardised header to the log file
     """
@@ -53,7 +53,7 @@ def write_log_header(
         f"{destination_directory}"
     )
     logging.debug(
-        f"Transfer started: " f"{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
+        f"Transfer started: {start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
     )
     logging.debug(f"Source directory: {source_directory}")
     logging.debug(f"Destination directory: {destination_directory}")
@@ -77,7 +77,7 @@ def write_log_footer(start_time: datetime):
     transfer_duration = end_time - start_time
     logging.info("Transfer ended")
     logging.debug(
-        f"Transfer ended at:  " f"{start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
+        f"Transfer ended at: {start_time.strftime('%Y-%m-%d_%H-%M-%S')}"
     )
 
     logging.debug(f"Time taken: {transfer_duration}")
