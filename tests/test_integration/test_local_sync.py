@@ -4,7 +4,7 @@ from pathlib import Path
 from synchro.cli import main as synchro_run
 from ..utils.utils import create_conf_file
 
-TEST_FILES = ("test1.txt", "test2.txt")
+TEST_FILES = ("test1.txt", "RDS Auto copy test.ndpi")
 TEST_DIRS = ("test_dir",)
 
 
