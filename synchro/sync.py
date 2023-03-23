@@ -194,6 +194,15 @@ class Synchronise:
             with open(self.paths.log_filename, "r") as g:
                 line = g.readline()
 
+                # relevant to skip forward to relevant point in persistent log
+                fmt = "%Y-%m-%d_%H-%M-%S"
+                time_stamp = (
+                    f"Transfer started: {self.start_time.strftime(fmt)}"
+                )
+
+                while not line.startswith(time_stamp):
+                    line = g.readline()
+
                 # TODO: fix start/end of email component
                 while not line.startswith("---Starting dry run:"):
                     line = g.readline()
