@@ -189,7 +189,7 @@ class Synchronise:
 
     def write_email_file(self):
         with open(self.paths.email_file, "w") as f:
-            f.write("-- Transfer summary:\n\n")
+            f.write("Transfer summary:\n\n")
 
             with open(self.paths.log_filename, "r") as g:
                 line = g.readline()
@@ -203,6 +203,8 @@ class Synchronise:
 
                     if not line.startswith("---Dry run complete:"):
                         f.write(line + "\n")
+
+            f.write("\nContact schelpdesk@icr.ac.uk for any issues.")
 
     def send_email_start(self):
         if self.email_on_start_cmd is not None:
