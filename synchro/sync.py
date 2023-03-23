@@ -166,7 +166,7 @@ class Synchronise:
 
     def _prep_email_on_start(self):
         if self.options.email_on_start:
-            subject = f"'synchro-transfer-start-{self.start_time}'"
+            subject = f"synchro-transfer-start-{self.start_time}"
             recipient = self.options.email_address
             self.email_on_start_cmd = Email(
                 subject=subject, recipient=recipient
@@ -176,7 +176,7 @@ class Synchronise:
 
     def _prep_email_on_end(self):
         if self.options.email_on_end:
-            subject = f"'synchro-complete-{self.start_time}'"
+            subject = f"synchro-complete-{self.start_time}"
             recipient = self.options.email_address
             message_body_file = self.paths.email_file
             self.email_on_end_cmd = Email(
