@@ -15,7 +15,9 @@ class Email:
             self.prep_command()
 
     def prep_command(self):
-        if self.message_body_file is None:
+        if self.recipient is None:  # Keep as None
+            pass
+        elif self.message_body_file is None:
             self.cmd = self._attachment_free()
         else:
             self.cmd = self._include_attachment()
